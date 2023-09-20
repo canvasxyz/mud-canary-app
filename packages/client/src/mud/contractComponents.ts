@@ -5,6 +5,39 @@ import { defineComponent, Type as RecsType, World } from "@latticexyz/recs";
 
 export function defineContractComponents(world: World) {
   return {
+    PlayersTable: (() => {
+      const tableId = new TableId("", "PlayersTable");
+      return defineComponent(
+        world,
+        {
+          name: RecsType.String,
+          bio: RecsType.String,
+        },
+        {
+          metadata: {
+            contractId: tableId.toHex(),
+            tableId: tableId.toString(),
+          },
+        }
+      );
+    })(),
+    OffchainMessagesTable: (() => {
+      const tableId = new TableId("", "OffchainMessages");
+      return defineComponent(
+        world,
+        {
+          from: RecsType.String,
+          timestamp: RecsType.BigInt,
+          message: RecsType.String,
+        },
+        {
+          metadata: {
+            contractId: tableId.toHex(),
+            tableId: tableId.toString(),
+          },
+        }
+      );
+    })(),
     Counter: (() => {
       const tableId = new TableId("", "Counter");
       return defineComponent(

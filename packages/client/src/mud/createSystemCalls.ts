@@ -1,21 +1,27 @@
-import { getComponentValue } from "@latticexyz/recs";
-import { awaitStreamValue } from "@latticexyz/utils";
-import { ClientComponents } from "./createClientComponents";
-import { SetupNetworkResult } from "./setupNetwork";
+import { getComponentValue } from "@latticexyz/recs"
+import { awaitStreamValue } from "@latticexyz/utils"
+import { ClientComponents } from "./createClientComponents"
+import { SetupNetworkResult } from "./setupNetwork"
 
-export type SystemCalls = ReturnType<typeof createSystemCalls>;
+export type SystemCalls = ReturnType<typeof createSystemCalls>
 
 export function createSystemCalls(
   { worldSend, txReduced$, singletonEntity }: SetupNetworkResult,
-  { Counter }: ClientComponents
+  { PlayersTable }: ClientComponents
 ) {
-  const increment = async () => {
-    const tx = await worldSend("increment", []);
-    await awaitStreamValue(txReduced$, (txHash) => txHash === tx.hash);
-    return getComponentValue(Counter, singletonEntity);
-  };
+  const registerPlayer = async () => {
+    const tx = await worldSend("registerPlayer()", [])
+    await awaitStreamValue(txReduced$, (txHash) => txHash === tx.hash)
+    return getComponentValue(PlayersTable, singletonEntity)
+  }
+  const unregisterPlayer = async () => {
+    const tx = await worldSend("unregisterPlayer()", [])
+    await awaitStreamValue(txReduced$, (txHash) => txHash === tx.hash)
+    return getComponentValue(PlayersTable, singletonEntity)
+  }
 
   return {
-    increment,
-  };
+    registerPlayer,
+    unregisterPlayer,
+  }
 }
