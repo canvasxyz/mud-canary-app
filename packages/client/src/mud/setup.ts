@@ -18,6 +18,21 @@ export async function setup() {
   const components = createClientComponents(network)
   const systemCalls = createSystemCalls(network, components)
 
+  const httpOnlyClient = createPublicClient({
+    transport: fallback([http(network.networkConfig.provider.jsonRpcUrl)]),
+    chain: {
+      id: 31337,
+      rpcUrl: "localhost:8545",
+    },
+  }).extend((client) => ({
+    async createAccessList(args: CallParameters) {
+      return client.request({
+        method: "eth_createAccessList",
+        params: [args, "latest"],
+      })
+    },
+  }))
+
   const publicClient = createPublicClient({
     transport: fallback([
       webSocket(network.networkConfig.provider.wsRpcUrl),
@@ -51,6 +66,7 @@ export async function setup() {
     network,
     components,
     systemCalls,
+    httpOnlyClient,
     publicClient,
     walletClient,
   }

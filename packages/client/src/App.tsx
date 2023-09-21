@@ -23,6 +23,7 @@ export const App = () => {
     components: { PlayersTable },
     systemCalls: { registerPlayer, unregisterPlayer },
     network,
+    httpOnlyClient,
     publicClient,
     walletClient,
   } = mud
@@ -47,7 +48,23 @@ export const App = () => {
       },
     ]
 
-    // TODO: inject state
+    httpOnlyClient
+      .createAccessList({
+        from: walletClient.account.address as Hex,
+        to: network.worldContract.address as Hex,
+        data: encodeFunctionData({
+          abi,
+          functionName: "sendOffchainMessage",
+          args: [text],
+        }),
+      })
+      .then((data) => {
+        console.log("accessList:", data.accessList)
+      })
+      .catch((err: Error) => {
+        console.error(err)
+      })
+
     publicClient
       .simulateContract({
         account: walletClient.account,
