@@ -16,13 +16,13 @@ export default mudConfig({
       keySchema: {
         player: "address",
       },
-      schema: {
+      valueSchema: {
         name: "string",
         bio: "string",
       },
     },
     OffchainMessagesTable: {
-      schema: {
+      valueSchema: {
         from: "address",
         timestamp: "uint256",
         message: "string",
@@ -31,7 +31,7 @@ export default mudConfig({
     },
     Counter: {
       keySchema: {},
-      schema: "uint32",
+      valueSchema: "uint32",
     },
   },
 });
