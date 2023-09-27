@@ -15,6 +15,8 @@ import { useCanvas } from "./canvas-mudevm"
 
 export const App = () => {
   const [balance, setBalance] = useState<number>()
+  const [messages, setMessages] = useState<string[]>([])
+  const [errorMsg, setErrorMsg] = useState<string>()
   const inputRef = useRef<any>()
 
   const mud = useMUD()
@@ -23,10 +25,8 @@ export const App = () => {
     components: { PlayersTable },
     systemCalls: { registerPlayer, unregisterPlayer },
     network,
-    httpOnlyClient,
-    publicClient,
-    walletClient,
   } = mud
+  const { httpOnlyClient, publicClient, walletClient } = network
 
   const entities = useEntityQuery([Has(PlayersTable)])
   const addresses = entities.map(utils.hexValue)
@@ -37,33 +37,32 @@ export const App = () => {
   )
 
   const sendMsg = () => {
+    setErrorMsg("")
     const text = inputRef.current.value
     const abi = [
       {
         name: "sendOffchainMessage",
         inputs: [{ name: "message", type: "string" }],
-        outputs: [{ name: "", type: "address" }],
+        outputs: [
+          {
+            type: "tuple",
+            components: [
+              {
+                type: "address",
+              },
+              {
+                type: "uint256",
+              },
+              {
+                type: "string",
+              },
+            ],
+          },
+        ],
         stateMutability: "nonpayable",
         type: "function",
       },
     ]
-
-    httpOnlyClient
-      .createAccessList({
-        from: walletClient.account.address as Hex,
-        to: network.worldContract.address as Hex,
-        data: encodeFunctionData({
-          abi,
-          functionName: "sendOffchainMessage",
-          args: [text],
-        }),
-      })
-      .then((data) => {
-        console.log("accessList:", data.accessList)
-      })
-      .catch((err: Error) => {
-        console.error(err)
-      })
 
     publicClient
       .simulateContract({
@@ -75,27 +74,20 @@ export const App = () => {
         args: [text],
         gasPrice: 0,
         gasLimit: 0,
-        // data: encodeFunctionData({
-        //   abi,
-        //   functionName: "sendOffchainMessage",
-        //   args: ["hello"],
-        // }),
       })
       .then((data) => {
-        // // Decode direct RPC calls.
-        // const result = decodeFunctionResult({
-        //   abi,
-        //   functionName: "sendOffchainMessage",
-        //   data: data.result,
-        // })
         console.log(data.result)
+        setMessages(messages.concat([data.result.toString()]))
+        // app.actions.message({ text }).then((result) => /* sent result */)
       })
       .catch((err: Error) => {
-        console.error(err)
+        if (err.cause?.data?.args) {
+          setErrorMsg(err.cause.data.args[0])
+        } else {
+          setErrorMsg(err.toString())
+          console.error(err)
+        }
       })
-
-    // app.actions.message({ text }).then((result) => /* sent result */)
-    // {results.map((result, index) => <div key={result.id}>{result.text}</div>)}
     inputRef.current.value = ""
   }
 
@@ -141,8 +133,8 @@ export const App = () => {
             margin: "20px 0",
           }}
         >
-          {[].map((msg, idx) => (
-            <div key={idx}>Message</div>
+          {messages.map((msg, idx) => (
+            <div key={idx}>{msg}</div>
           ))}
         </div>
         <form
@@ -158,6 +150,16 @@ export const App = () => {
             autoFocus
           />
           <button type="button">Send</button>
+          {errorMsg && (
+            <div
+              style={{
+                marginTop: "10px",
+                color: "#dd0022",
+              }}
+            >
+              {errorMsg}
+            </div>
+          )}
         </form>
       </div>
     </>

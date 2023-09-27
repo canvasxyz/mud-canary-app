@@ -22,6 +22,6 @@ contract MessagingSystem is System {
       })
     );
 
-    return OffchainMessagesTableData(_msgSender(), 999, "hello");
+    return OffchainMessagesTableData(_msgSender(), block.timestamp, message);
   }
 }

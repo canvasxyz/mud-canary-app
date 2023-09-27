@@ -33,8 +33,30 @@ export async function setupNetwork() {
     transport: transportObserver(fallback([webSocket(), http()])),
     pollingInterval: 1000,
   } as ClientConfig
+  const publicClient = createPublicClient(clientOptions).extend((client) => ({
+    async traceCall(args: CallParameters) {
+      return client.request({
+        method: "debug_traceCall",
+        params: [formatTransactionRequest(args), "latest", { code: "0x0" }],
+      })
+    },
+  }))
 
-  const publicClient = createPublicClient(clientOptions)
+  const httpOnlyClientOptions = {
+    chain: networkConfig.chain,
+    transport: transportObserver(fallback([http()])),
+    pollingInterval: 1000,
+  } as ClientConfig
+  const httpOnlyClient = createPublicClient(httpOnlyClientOptions).extend(
+    (client) => ({
+      async createAccessList(args: CallParameters) {
+        return client.request({
+          method: "eth_createAccessList",
+          params: [args, "latest"],
+        })
+      },
+    })
+  )
 
   const burnerAccount = createBurnerAccount(networkConfig.privateKey as Hex)
   const burnerWalletClient = createWalletClient({
@@ -84,6 +106,7 @@ export async function setupNetwork() {
       { address: burnerWalletClient.account.address }
     ),
     publicClient,
+    httpOnlyClient,
     walletClient: burnerWalletClient,
     latestBlock$,
     storedBlockLogs$,

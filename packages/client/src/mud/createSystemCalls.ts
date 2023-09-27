@@ -1,4 +1,3 @@
-import { getComponentValue } from "@latticexyz/recs"
 import { awaitStreamValue } from "@latticexyz/utils"
 import { ClientComponents } from "./createClientComponents"
 import { SetupNetworkResult } from "./setupNetwork"
@@ -6,18 +5,18 @@ import { SetupNetworkResult } from "./setupNetwork"
 export type SystemCalls = ReturnType<typeof createSystemCalls>
 
 export function createSystemCalls(
-  { worldSend, txReduced$, singletonEntity }: SetupNetworkResult,
+  network: SetupNetworkResult,
   { PlayersTable }: ClientComponents
 ) {
   const registerPlayer = async () => {
-    const tx = await worldSend("registerPlayer()", [])
-    await awaitStreamValue(txReduced$, (txHash) => txHash === tx.hash)
-    return getComponentValue(PlayersTable, singletonEntity)
+    const tx = await network.worldContract.write.registerPlayer()
+    const result = await network.waitForTransaction(tx)
+    return result
   }
   const unregisterPlayer = async () => {
-    const tx = await worldSend("unregisterPlayer()", [])
-    await awaitStreamValue(txReduced$, (txHash) => txHash === tx.hash)
-    return getComponentValue(PlayersTable, singletonEntity)
+    const tx = await network.worldContract.write.unregisterPlayer()
+    const result = await network.waitForTransaction(tx)
+    return result
   }
 
   return {
