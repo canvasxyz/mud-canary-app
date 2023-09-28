@@ -18,7 +18,6 @@ export default mudConfig({
       },
       valueSchema: {
         name: "string",
-        bio: "string",
       },
     },
     OffchainMessagesTable: {

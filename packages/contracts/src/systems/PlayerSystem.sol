@@ -10,11 +10,11 @@ contract PlayerSystem is System {
 
   function registerPlayer(string memory name) public {
     emit Registered(_msgSender());
-    PlayersTable.set(_msgSender(), name, "");
+    PlayersTable.set(_msgSender(), name);
 	}
   function registerPlayer() public {
     emit Registered(_msgSender());
-    PlayersTable.set(_msgSender(), "Anonymous", "");
+    PlayersTable.set(_msgSender(), "Anonymous");
 	}
   function unregisterPlayer() public {
     emit Unregistered(_msgSender());

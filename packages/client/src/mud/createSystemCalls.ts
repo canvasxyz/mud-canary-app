@@ -8,8 +8,10 @@ export function createSystemCalls(
   network: SetupNetworkResult,
   { PlayersTable }: ClientComponents
 ) {
-  const registerPlayer = async () => {
-    const tx = await network.worldContract.write.registerPlayer()
+  const registerPlayer = async (name) => {
+    const tx = await network.worldContract.write.registerPlayer(
+      name ? [name] : []
+    )
     const result = await network.waitForTransaction(tx)
     return result
   }

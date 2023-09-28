@@ -13,10 +13,21 @@ import { privateKeyToAccount } from "viem/accounts"
 
 import { useCanvas } from "./canvas-mudevm"
 
+const PlayerListItem = ({ entityKey, playersTable }) => {
+  const playerData = useComponentValue(playersTable, entityKey)
+  const address = utils.hexValue(entityKey)
+  return (
+    <li key={entityKey}>
+      {address} - {playerData?.name}
+    </li>
+  )
+}
+
 export const App = () => {
   const [balance, setBalance] = useState<number>()
   const [messages, setMessages] = useState<string[]>([])
   const [errorMsg, setErrorMsg] = useState<string>()
+  const nameRef = useRef<any>()
   const inputRef = useRef<any>()
 
   const mud = useMUD()
@@ -28,12 +39,10 @@ export const App = () => {
   } = mud
   const { httpOnlyClient, publicClient, walletClient } = network
 
-  const entities = useEntityQuery([Has(PlayersTable)])
-  const addresses = entities.map(utils.hexValue)
-  const myPlayerData = useComponentValue(PlayersTable, entities[0])
-
+  const addressEntities = useEntityQuery([Has(PlayersTable)])
+  const addresses = addressEntities.map(utils.hexValue)
   const registered = addresses.some(
-    (ent) => ent === walletClient.account.address.toLowerCase()
+    (addr) => addr === walletClient.account.address.toLowerCase()
   )
 
   const sendMsg = () => {
@@ -100,28 +109,41 @@ export const App = () => {
   return (
     <>
       <div>
+        <div> World: {network.worldContract.address}</div>
         <div>Your account: {walletClient.account.address}</div>
-        <div>
-          Registered: {registered ? `true - ${myPlayerData?.name}` : "false"}
-        </div>
-        <div>Registrations: {JSON.stringify(addresses)}</div>
+        <div>Registered: {registered ? "true" : "false"}</div>
+        <div>Registrations:</div>
+        <ul>
+          {addressEntities.map((entityKey, index) => (
+            <PlayerListItem
+              key={entityKey}
+              playersTable={PlayersTable}
+              entityKey={entityKey}
+            />
+          ))}
+        </ul>
         <div>Try opening me in an incognito window.</div>
         <div>
-          {
-            <button
-              type="button"
-              onClick={async (event) => {
-                event.preventDefault()
-                if (registered) {
-                  await unregisterPlayer()
-                } else {
-                  await registerPlayer()
-                }
-              }}
-            >
-              {registered ? "Unregister" : "Register"}
-            </button>
-          }
+          {!registered && (
+            <input ref={nameRef} type="text" placeholder="Your name" />
+          )}
+          <button
+            type="button"
+            onClick={async (event) => {
+              event.preventDefault()
+              if (registered) {
+                await unregisterPlayer()
+              } else if (nameRef?.current?.value?.trim()) {
+                console.log(1)
+                await registerPlayer(nameRef.current.value.trim())
+              } else {
+                console.log(2)
+                await registerPlayer()
+              }
+            }}
+          >
+            {registered ? "Unregister" : "Register"}
+          </button>
         </div>
       </div>
       <br />

@@ -26,13 +26,8 @@ ResourceId constant _tableId = ResourceId.wrap(
 ResourceId constant PlayersTableTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x0000000200000000000000000000000000000000000000000000000000000000
+  0x0000000100000000000000000000000000000000000000000000000000000000
 );
-
-struct PlayersTableData {
-  string name;
-  string bio;
-}
 
 library PlayersTable {
   /** Get the table values' field layout */
@@ -50,9 +45,8 @@ library PlayersTable {
 
   /** Get the table's value schema */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](2);
+    SchemaType[] memory _valueSchema = new SchemaType[](1);
     _valueSchema[0] = SchemaType.STRING;
-    _valueSchema[1] = SchemaType.STRING;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -65,9 +59,8 @@ library PlayersTable {
 
   /** Get the table's field names */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](2);
+    fieldNames = new string[](1);
     fieldNames[0] = "name";
-    fieldNames[1] = "bio";
   }
 
   /** Register the table with its config */
@@ -112,6 +105,33 @@ library PlayersTable {
     return (string(_blob));
   }
 
+  /** Get name */
+  function get(address player) internal view returns (string memory name) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    bytes memory _blob = StoreSwitch.getDynamicField(_tableId, _keyTuple, 0);
+    return (string(_blob));
+  }
+
+  /** Get name */
+  function _get(address player) internal view returns (string memory name) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    bytes memory _blob = StoreCore.getDynamicField(_tableId, _keyTuple, 0);
+    return (string(_blob));
+  }
+
+  /** Get name (using the specified store) */
+  function get(IStore _store, address player) internal view returns (string memory name) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    bytes memory _blob = _store.getDynamicField(_tableId, _keyTuple, 0);
+    return (string(_blob));
+  }
+
   /** Set name */
   function setName(address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -130,6 +150,30 @@ library PlayersTable {
 
   /** Set name (using the specified store) */
   function setName(IStore _store, address player, string memory name) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    _store.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
+  }
+
+  /** Set name */
+  function set(address player, string memory name) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    StoreSwitch.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
+  }
+
+  /** Set name */
+  function _set(address player, string memory name) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    StoreCore.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
+  }
+
+  /** Set name (using the specified store) */
+  function set(IStore _store, address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
 
@@ -160,6 +204,39 @@ library PlayersTable {
 
   /** Get the length of name (using the specified store) */
   function lengthName(IStore _store, address player) internal view returns (uint256) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    uint256 _byteLength = _store.getDynamicFieldLength(_tableId, _keyTuple, 0);
+    unchecked {
+      return _byteLength / 1;
+    }
+  }
+
+  /** Get the length of name */
+  function length(address player) internal view returns (uint256) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    uint256 _byteLength = StoreSwitch.getDynamicFieldLength(_tableId, _keyTuple, 0);
+    unchecked {
+      return _byteLength / 1;
+    }
+  }
+
+  /** Get the length of name */
+  function _length(address player) internal view returns (uint256) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    uint256 _byteLength = StoreCore.getDynamicFieldLength(_tableId, _keyTuple, 0);
+    unchecked {
+      return _byteLength / 1;
+    }
+  }
+
+  /** Get the length of name (using the specified store) */
+  function length(IStore _store, address player) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
 
@@ -211,6 +288,48 @@ library PlayersTable {
     }
   }
 
+  /**
+   * Get an item of name
+   * (unchecked, returns invalid data if index overflows)
+   */
+  function getItem(address player, uint256 _index) internal view returns (string memory) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    unchecked {
+      bytes memory _blob = StoreSwitch.getDynamicFieldSlice(_tableId, _keyTuple, 0, _index * 1, (_index + 1) * 1);
+      return (string(_blob));
+    }
+  }
+
+  /**
+   * Get an item of name
+   * (unchecked, returns invalid data if index overflows)
+   */
+  function _getItem(address player, uint256 _index) internal view returns (string memory) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    unchecked {
+      bytes memory _blob = StoreCore.getDynamicFieldSlice(_tableId, _keyTuple, 0, _index * 1, (_index + 1) * 1);
+      return (string(_blob));
+    }
+  }
+
+  /**
+   * Get an item of name (using the specified store)
+   * (unchecked, returns invalid data if index overflows)
+   */
+  function getItem(IStore _store, address player, uint256 _index) internal view returns (string memory) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    unchecked {
+      bytes memory _blob = _store.getDynamicFieldSlice(_tableId, _keyTuple, 0, _index * 1, (_index + 1) * 1);
+      return (string(_blob));
+    }
+  }
+
   /** Push a slice to name */
   function pushName(address player, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -235,6 +354,30 @@ library PlayersTable {
     _store.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
 
+  /** Push a slice to name */
+  function push(address player, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
+  }
+
+  /** Push a slice to name */
+  function _push(address player, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    StoreCore.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
+  }
+
+  /** Push a slice to name (using the specified store) */
+  function push(IStore _store, address player, string memory _slice) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    _store.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
+  }
+
   /** Pop a slice from name */
   function popName(address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -253,6 +396,30 @@ library PlayersTable {
 
   /** Pop a slice from name (using the specified store) */
   function popName(IStore _store, address player) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    _store.popFromDynamicField(_tableId, _keyTuple, 0, 1);
+  }
+
+  /** Pop a slice from name */
+  function pop(address player) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 0, 1);
+  }
+
+  /** Pop a slice from name */
+  function _pop(address player) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = bytes32(uint256(uint160(player)));
+
+    StoreCore.popFromDynamicField(_tableId, _keyTuple, 0, 1);
+  }
+
+  /** Pop a slice from name (using the specified store) */
+  function pop(IStore _store, address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
 
@@ -301,365 +468,46 @@ library PlayersTable {
     }
   }
 
-  /** Get bio */
-  function getBio(address player) internal view returns (string memory bio) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    bytes memory _blob = StoreSwitch.getDynamicField(_tableId, _keyTuple, 1);
-    return (string(_blob));
-  }
-
-  /** Get bio */
-  function _getBio(address player) internal view returns (string memory bio) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    bytes memory _blob = StoreCore.getDynamicField(_tableId, _keyTuple, 1);
-    return (string(_blob));
-  }
-
-  /** Get bio (using the specified store) */
-  function getBio(IStore _store, address player) internal view returns (string memory bio) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    bytes memory _blob = _store.getDynamicField(_tableId, _keyTuple, 1);
-    return (string(_blob));
-  }
-
-  /** Set bio */
-  function setBio(address player, string memory bio) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreSwitch.setDynamicField(_tableId, _keyTuple, 1, bytes((bio)));
-  }
-
-  /** Set bio */
-  function _setBio(address player, string memory bio) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreCore.setDynamicField(_tableId, _keyTuple, 1, bytes((bio)));
-  }
-
-  /** Set bio (using the specified store) */
-  function setBio(IStore _store, address player, string memory bio) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    _store.setDynamicField(_tableId, _keyTuple, 1, bytes((bio)));
-  }
-
-  /** Get the length of bio */
-  function lengthBio(address player) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    uint256 _byteLength = StoreSwitch.getDynamicFieldLength(_tableId, _keyTuple, 1);
-    unchecked {
-      return _byteLength / 1;
-    }
-  }
-
-  /** Get the length of bio */
-  function _lengthBio(address player) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    uint256 _byteLength = StoreCore.getDynamicFieldLength(_tableId, _keyTuple, 1);
-    unchecked {
-      return _byteLength / 1;
-    }
-  }
-
-  /** Get the length of bio (using the specified store) */
-  function lengthBio(IStore _store, address player) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    uint256 _byteLength = _store.getDynamicFieldLength(_tableId, _keyTuple, 1);
-    unchecked {
-      return _byteLength / 1;
-    }
-  }
-
   /**
-   * Get an item of bio
-   * (unchecked, returns invalid data if index overflows)
-   */
-  function getItemBio(address player, uint256 _index) internal view returns (string memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    unchecked {
-      bytes memory _blob = StoreSwitch.getDynamicFieldSlice(_tableId, _keyTuple, 1, _index * 1, (_index + 1) * 1);
-      return (string(_blob));
-    }
-  }
-
-  /**
-   * Get an item of bio
-   * (unchecked, returns invalid data if index overflows)
-   */
-  function _getItemBio(address player, uint256 _index) internal view returns (string memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    unchecked {
-      bytes memory _blob = StoreCore.getDynamicFieldSlice(_tableId, _keyTuple, 1, _index * 1, (_index + 1) * 1);
-      return (string(_blob));
-    }
-  }
-
-  /**
-   * Get an item of bio (using the specified store)
-   * (unchecked, returns invalid data if index overflows)
-   */
-  function getItemBio(IStore _store, address player, uint256 _index) internal view returns (string memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    unchecked {
-      bytes memory _blob = _store.getDynamicFieldSlice(_tableId, _keyTuple, 1, _index * 1, (_index + 1) * 1);
-      return (string(_blob));
-    }
-  }
-
-  /** Push a slice to bio */
-  function pushBio(address player, string memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 1, bytes((_slice)));
-  }
-
-  /** Push a slice to bio */
-  function _pushBio(address player, string memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreCore.pushToDynamicField(_tableId, _keyTuple, 1, bytes((_slice)));
-  }
-
-  /** Push a slice to bio (using the specified store) */
-  function pushBio(IStore _store, address player, string memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    _store.pushToDynamicField(_tableId, _keyTuple, 1, bytes((_slice)));
-  }
-
-  /** Pop a slice from bio */
-  function popBio(address player) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 1, 1);
-  }
-
-  /** Pop a slice from bio */
-  function _popBio(address player) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreCore.popFromDynamicField(_tableId, _keyTuple, 1, 1);
-  }
-
-  /** Pop a slice from bio (using the specified store) */
-  function popBio(IStore _store, address player) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    _store.popFromDynamicField(_tableId, _keyTuple, 1, 1);
-  }
-
-  /**
-   * Update a slice of bio at `_index`
+   * Update a slice of name at `_index`
    * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
    */
-  function updateBio(address player, uint256 _index, string memory _slice) internal {
+  function update(address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
-      StoreSwitch.spliceDynamicData(_tableId, _keyTuple, 1, uint40(_index * 1), uint40(_encoded.length), _encoded);
+      StoreSwitch.spliceDynamicData(_tableId, _keyTuple, 0, uint40(_index * 1), uint40(_encoded.length), _encoded);
     }
   }
 
   /**
-   * Update a slice of bio at `_index`
+   * Update a slice of name at `_index`
    * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
    */
-  function _updateBio(address player, uint256 _index, string memory _slice) internal {
+  function _update(address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
-      StoreCore.spliceDynamicData(_tableId, _keyTuple, 1, uint40(_index * 1), uint40(_encoded.length), _encoded);
+      StoreCore.spliceDynamicData(_tableId, _keyTuple, 0, uint40(_index * 1), uint40(_encoded.length), _encoded);
     }
   }
 
   /**
-   * Update a slice of bio (using the specified store) at `_index`
+   * Update a slice of name (using the specified store) at `_index`
    * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
    */
-  function updateBio(IStore _store, address player, uint256 _index, string memory _slice) internal {
+  function update(IStore _store, address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
-      _store.spliceDynamicData(_tableId, _keyTuple, 1, uint40(_index * 1), uint40(_encoded.length), _encoded);
+      _store.spliceDynamicData(_tableId, _keyTuple, 0, uint40(_index * 1), uint40(_encoded.length), _encoded);
     }
-  }
-
-  /** Get the full data */
-  function get(address player) internal view returns (PlayersTableData memory _table) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    (bytes memory _staticData, PackedCounter _encodedLengths, bytes memory _dynamicData) = StoreSwitch.getRecord(
-      _tableId,
-      _keyTuple,
-      _fieldLayout
-    );
-    return decode(_staticData, _encodedLengths, _dynamicData);
-  }
-
-  /** Get the full data */
-  function _get(address player) internal view returns (PlayersTableData memory _table) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    (bytes memory _staticData, PackedCounter _encodedLengths, bytes memory _dynamicData) = StoreCore.getRecord(
-      _tableId,
-      _keyTuple,
-      _fieldLayout
-    );
-    return decode(_staticData, _encodedLengths, _dynamicData);
-  }
-
-  /** Get the full data (using the specified store) */
-  function get(IStore _store, address player) internal view returns (PlayersTableData memory _table) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    (bytes memory _staticData, PackedCounter _encodedLengths, bytes memory _dynamicData) = _store.getRecord(
-      _tableId,
-      _keyTuple,
-      _fieldLayout
-    );
-    return decode(_staticData, _encodedLengths, _dynamicData);
-  }
-
-  /** Set the full data using individual values */
-  function set(address player, string memory name, string memory bio) internal {
-    bytes memory _staticData;
-    PackedCounter _encodedLengths = encodeLengths(name, bio);
-    bytes memory _dynamicData = encodeDynamic(name, bio);
-
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreSwitch.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData);
-  }
-
-  /** Set the full data using individual values */
-  function _set(address player, string memory name, string memory bio) internal {
-    bytes memory _staticData;
-    PackedCounter _encodedLengths = encodeLengths(name, bio);
-    bytes memory _dynamicData = encodeDynamic(name, bio);
-
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreCore.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData, _fieldLayout);
-  }
-
-  /** Set the full data using individual values (using the specified store) */
-  function set(IStore _store, address player, string memory name, string memory bio) internal {
-    bytes memory _staticData;
-    PackedCounter _encodedLengths = encodeLengths(name, bio);
-    bytes memory _dynamicData = encodeDynamic(name, bio);
-
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    _store.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData);
-  }
-
-  /** Set the full data using the data struct */
-  function set(address player, PlayersTableData memory _table) internal {
-    bytes memory _staticData;
-    PackedCounter _encodedLengths = encodeLengths(_table.name, _table.bio);
-    bytes memory _dynamicData = encodeDynamic(_table.name, _table.bio);
-
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreSwitch.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData);
-  }
-
-  /** Set the full data using the data struct */
-  function _set(address player, PlayersTableData memory _table) internal {
-    bytes memory _staticData;
-    PackedCounter _encodedLengths = encodeLengths(_table.name, _table.bio);
-    bytes memory _dynamicData = encodeDynamic(_table.name, _table.bio);
-
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    StoreCore.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData, _fieldLayout);
-  }
-
-  /** Set the full data using the data struct (using the specified store) */
-  function set(IStore _store, address player, PlayersTableData memory _table) internal {
-    bytes memory _staticData;
-    PackedCounter _encodedLengths = encodeLengths(_table.name, _table.bio);
-    bytes memory _dynamicData = encodeDynamic(_table.name, _table.bio);
-
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(uint160(player)));
-
-    _store.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData);
-  }
-
-  /**
-   * Decode the tightly packed blob of static data using this table's field layout
-   * Undefined behaviour for invalid blobs
-   */
-  function decodeDynamic(
-    PackedCounter _encodedLengths,
-    bytes memory _blob
-  ) internal pure returns (string memory name, string memory bio) {
-    uint256 _start;
-    uint256 _end;
-    unchecked {
-      _end = _encodedLengths.atIndex(0);
-    }
-    name = (string(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
-
-    _start = _end;
-    unchecked {
-      _end += _encodedLengths.atIndex(1);
-    }
-    bio = (string(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
-  }
-
-  /**
-   * Decode the tightly packed blob using this table's field layout.
-   * Undefined behaviour for invalid blobs.
-   */
-  function decode(
-    bytes memory,
-    PackedCounter _encodedLengths,
-    bytes memory _dynamicData
-  ) internal pure returns (PlayersTableData memory _table) {
-    (_table.name, _table.bio) = decodeDynamic(_encodedLengths, _dynamicData);
   }
 
   /** Delete all data for given keys */
@@ -687,26 +535,23 @@ library PlayersTable {
   }
 
   /** Tightly pack dynamic data using this table's schema */
-  function encodeLengths(string memory name, string memory bio) internal pure returns (PackedCounter _encodedLengths) {
+  function encodeLengths(string memory name) internal pure returns (PackedCounter _encodedLengths) {
     // Lengths are effectively checked during copy by 2**40 bytes exceeding gas limits
     unchecked {
-      _encodedLengths = PackedCounterLib.pack(bytes(name).length, bytes(bio).length);
+      _encodedLengths = PackedCounterLib.pack(bytes(name).length);
     }
   }
 
   /** Tightly pack dynamic data using this table's schema */
-  function encodeDynamic(string memory name, string memory bio) internal pure returns (bytes memory) {
-    return abi.encodePacked(bytes((name)), bytes((bio)));
+  function encodeDynamic(string memory name) internal pure returns (bytes memory) {
+    return abi.encodePacked(bytes((name)));
   }
 
   /** Tightly pack full data using this table's field layout */
-  function encode(
-    string memory name,
-    string memory bio
-  ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
+  function encode(string memory name) internal pure returns (bytes memory, PackedCounter, bytes memory) {
     bytes memory _staticData;
-    PackedCounter _encodedLengths = encodeLengths(name, bio);
-    bytes memory _dynamicData = encodeDynamic(name, bio);
+    PackedCounter _encodedLengths = encodeLengths(name);
+    bytes memory _dynamicData = encodeDynamic(name);
 
     return (_staticData, _encodedLengths, _dynamicData);
   }
