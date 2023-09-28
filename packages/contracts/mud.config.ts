@@ -27,7 +27,7 @@ export default mudConfig({
         timestamp: "uint256",
         message: "string",
       },
-      ephemeral: true,
+      offchainOnly: true,
     },
     Counter: {
       keySchema: {},
