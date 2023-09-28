@@ -12,6 +12,7 @@ import { getContract, encodeFunctionData, decodeFunctionResult } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
 import { useCanvas } from "./canvas-mudevm"
+import IWorldAbi from "contracts/out/IWorld.sol/IWorld.abi.json"
 
 const PlayerListItem = ({ entityKey, playersTable }) => {
   const playerData = useComponentValue(playersTable, entityKey)
@@ -25,7 +26,9 @@ const PlayerListItem = ({ entityKey, playersTable }) => {
 
 export const App = () => {
   const [balance, setBalance] = useState<number>()
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<
+    { from: string; timestamp: number; message: string }[]
+  >([])
   const [errorMsg, setErrorMsg] = useState<string>()
   const nameRef = useRef<any>()
   const inputRef = useRef<any>()
@@ -33,7 +36,7 @@ export const App = () => {
   const mud = useMUD()
 
   const {
-    components: { PlayersTable },
+    components: { PlayersTable, Systems },
     systemCalls: { registerPlayer, unregisterPlayer },
     network,
   } = mud
@@ -48,37 +51,14 @@ export const App = () => {
   const sendMsg = () => {
     setErrorMsg("")
     const text = inputRef.current.value
-    const abi = [
-      {
-        name: "sendOffchainMessage",
-        inputs: [{ name: "message", type: "string" }],
-        outputs: [
-          {
-            type: "tuple",
-            components: [
-              {
-                type: "address",
-              },
-              {
-                type: "uint256",
-              },
-              {
-                type: "string",
-              },
-            ],
-          },
-        ],
-        stateMutability: "nonpayable",
-        type: "function",
-      },
-    ]
+    const abi = IWorldAbi.find((abi) => abi.name === "sendOffchainMessage")
 
     publicClient
       .simulateContract({
         account: walletClient.account,
         from: walletClient.account.address as Hex,
         to: network.worldContract.address as Hex,
-        abi,
+        abi: IWorldAbi,
         functionName: "sendOffchainMessage",
         args: [text],
         gasPrice: 0,
@@ -86,7 +66,7 @@ export const App = () => {
       })
       .then((data) => {
         console.log(data.result)
-        setMessages(messages.concat([data.result.toString()]))
+        setMessages(messages.concat([data.result]))
         // app.actions.message({ text }).then((result) => /* sent result */)
       })
       .catch((err: Error) => {
@@ -156,7 +136,9 @@ export const App = () => {
           }}
         >
           {messages.map((msg, idx) => (
-            <div key={idx}>{msg}</div>
+            <div key={idx}>
+              [{msg.timestamp.toString()}] {msg.from}: {msg.message}
+            </div>
           ))}
         </div>
         <form
