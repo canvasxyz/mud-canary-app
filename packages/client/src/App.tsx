@@ -51,7 +51,7 @@ export const App = () => {
   const sendMsg = () => {
     setErrorMsg("")
     const text = inputRef.current.value
-    app.actions.message({ text }).then((result) => {
+    app.actions.sendOffchainMessage({ text }).then((result) => {
       // TODO: prevent double sending the same message
       inputRef.current.value = ""
     })

@@ -1,7 +1,25 @@
 import { Canvas } from "@canvas-js/core"
+import { SIWESigner } from "@canvas-js/chain-ethereum"
 import { useMemo, useEffect, useState } from "react"
 import mudConfig from "contracts/mud.config"
 import IWorldAbi from "contracts/out/IWorld.sol/IWorld.abi.json"
+import type { Abi, AbiItem } from "viem"
+import type { AbiFunction } from "abitype"
+
+// TODO: import type { ActionImplementation, ActionContext, ActionDB, JSValue } from "@canvas-js/core"
+interface JSArray extends Array<JSValue> {}
+interface JSObject { [key: string]: JSValue }
+type ModelAPI = any;
+type JSValue = null | boolean | number | string | Uint8Array | JSArray | JSObject
+type Awaitable<T> = T | Promise<T>;
+type ActionImplementation = (db: Record<string, any>, args: JSValue, context: ActionContext) => Awaitable<void | JSValue>;
+type ActionContext = {
+    id: string;
+    chain: string;
+    address: string;
+    blockhash: string | null;
+    timestamp: number;
+};
 
 // TODO
 interface IUseCanvas {
@@ -11,7 +29,7 @@ interface IUseCanvas {
 }
 
 export const useCanvas = (props: IUseCanvas) => {
-  const [app, setApp] = useState()
+  const [app, setApp] = useState<Canvas>()
   // TODO: reset app when config changes?
 
   useEffect(() => {
@@ -52,10 +70,10 @@ export const useCanvas = (props: IUseCanvas) => {
             ...Object.fromEntries(
               Object.entries(params.valueSchema).map(([field, type]) => [
                 field,
-                "blob",
+                "bytes",
               ])
             ),
-            mutable: true,
+            // mutable: true,
           },
         ])
       )
@@ -69,7 +87,7 @@ export const useCanvas = (props: IUseCanvas) => {
         const systemAbi = JSON.parse(systemAbiRaw)
 
         const calls = systemAbi.filter(
-          (entry) =>
+          (entry: AbiItem) =>
             entry.type === "function" &&
             !entry.name.startsWith("_") &&
             entry.stateMutability !== "pure"
@@ -77,9 +95,14 @@ export const useCanvas = (props: IUseCanvas) => {
         )
 
         const actions = Object.fromEntries(
-          calls.map((abiParams) => {
-            const actionHandler = async (args) => {
+          calls.map((abiParams: AbiFunction) => {
+            const actionHandler = async (db: Record<string, ModelAPI>, args: JSValue, context: ActionContext) => {
               console.log("called", abiParams.name, abiParams)
+
+              const { content } = args as { content: string }
+              const { id, chain, address, timestamp } = context
+              // await db.posts.set(postId, { content, timestamp })
+              // return id
 
               // TODO: convert to type signatures
               // keySchema = { key: 'bytes32' }
@@ -133,14 +156,15 @@ export const useCanvas = (props: IUseCanvas) => {
       }
 
       const topic = "hello.world"
-      const app = new Canvas({
+      const app = await Canvas.initialize({
         contract: {
           topic,
           models: modelsSpec,
           actions: actionsSpec,
         },
         offline,
-        signers,
+        signers: [new SIWESigner(signers[0])],
+        location: "sqldb",
       })
 
       console.log(`refreshed app: ${topic}`)

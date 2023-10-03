@@ -10,7 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@canvas-js/core": "0.6.0-alpha1",
+    "@canvas-js/chain-ethereum": "0.6.0-alpha3",
+    "@canvas-js/core": "0.6.0-alpha3",
     "@ethersproject/providers": "^5.7.2",
     "@latticexyz/common": "2.0.0-next.9",
     "@latticexyz/dev-tools": "2.0.0-next.9",
@@ -23,6 +24,7 @@
     "@latticexyz/utils": "2.0.0-next.9",
     "@latticexyz/world": "2.0.0-next.9",
     "@wagmi/chains": "^1.8.0",
+    "abitype": "^0.9.8",
     "async-mutex": "^0.4.0",
     "contracts": "workspace:*",
     "ethers": "^5.7.2",
