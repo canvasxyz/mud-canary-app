@@ -51,33 +51,10 @@ export const App = () => {
   const sendMsg = () => {
     setErrorMsg("")
     const text = inputRef.current.value
-    const abi = IWorldAbi.find((abi) => abi.name === "sendOffchainMessage")
-
-    publicClient
-      .simulateContract({
-        account: walletClient.account,
-        from: walletClient.account.address as Hex,
-        to: network.worldContract.address as Hex,
-        abi: IWorldAbi,
-        functionName: "sendOffchainMessage",
-        args: [text],
-        gasPrice: 0,
-        gasLimit: 0,
-      })
-      .then((data) => {
-        console.log(data.result)
-        setMessages(messages.concat([data.result]))
-        // app.actions.message({ text }).then((result) => /* sent result */)
-      })
-      .catch((err: Error) => {
-        if (err.cause?.data?.args) {
-          setErrorMsg(err.cause.data.args[0])
-        } else {
-          setErrorMsg(err.toString())
-          console.error(err)
-        }
-      })
-    inputRef.current.value = ""
+    app.actions.message({ text }).then((result) => {
+      // TODO: prevent double sending the same message
+      inputRef.current.value = ""
+    })
   }
 
   const app = useCanvas({
@@ -89,7 +66,7 @@ export const App = () => {
   return (
     <>
       <div>
-        <div> World: {network.worldContract.address}</div>
+        <div>World: {network.worldContract.address}</div>
         <div>Your account: {walletClient.account.address}</div>
         <div>Registered: {registered ? "true" : "false"}</div>
         <div>Registrations:</div>

@@ -27,6 +27,7 @@ export default mudConfig({
         message: "string",
       },
       offchainOnly: true,
+      offchainSync: true,
     },
     Counter: {
       keySchema: {},
