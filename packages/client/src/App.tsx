@@ -79,6 +79,20 @@ export const App = () => {
       })
   }
 
+  const sendMsgOnchain = () => {
+    setErrorMsg("")
+    const text = inputRef.current.value
+    if (!text) return
+
+    network.worldContract.write.sendOffchainMessage([text]).then((result) => {
+      console.log(result)
+      inputRef.current.value = ''
+    }).catch((err) => {
+      setErrorMsg(err.toString())
+      console.error(err)
+    })
+  }
+
   const app = useCanvas({
     world: { mud, system: "OffchainSystem" },
     offline: true,
@@ -152,7 +166,8 @@ export const App = () => {
             placeholder="Type a message"
             autoFocus
           />
-          <button type="button">Send</button>
+          <button type="submit">Send</button>
+          <button type="button" onClick={sendMsgOnchain}>Send onchain</button>
           {errorMsg && (
             <div
               style={{
