@@ -1,4 +1,4 @@
-import { awaitStreamValue } from "@latticexyz/utils"
+import { Hex } from "viem"
 import { ClientComponents } from "./createClientComponents"
 import { SetupNetworkResult } from "./setupNetwork"
 
@@ -8,10 +8,10 @@ export function createSystemCalls(
   network: SetupNetworkResult,
   { PlayersTable }: ClientComponents
 ) {
-  const registerPlayer = async (name) => {
-    const tx = await network.worldContract.write.registerPlayer(
-      name ? [name] : []
-    )
+  const registerPlayer = async (name?: Hex) => {
+    const tx = name
+      ? await network.worldContract.write.registerPlayer([name])
+      : await network.worldContract.write.registerPlayer()
     const result = await network.waitForTransaction(tx)
     return result
   }

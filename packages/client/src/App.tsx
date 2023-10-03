@@ -1,20 +1,17 @@
-import { useEffect, useState, useMemo, useRef } from "react"
+import { useState, useRef } from "react"
 import { utils } from "ethers"
 import { useEntityQuery, useComponentValue } from "@latticexyz/react"
-import {
-  runQuery,
-  Has,
-  HasValue,
-  getComponentValueStrict,
-} from "@latticexyz/recs"
+import { Component, Entity, Has, Type } from "@latticexyz/recs"
 import { useMUD } from "./MUDContext"
-import { getContract, encodeFunctionData, decodeFunctionResult } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
-
 import { useCanvas } from "./canvas-mudevm"
-import IWorldAbi from "contracts/out/IWorld.sol/IWorld.abi.json"
 
-const PlayerListItem = ({ entityKey, playersTable }) => {
+const PlayerListItem = ({
+  entityKey,
+  playersTable,
+}: {
+  entityKey: Entity
+  playersTable: Component<{ name: Type.String }>
+}) => {
   const playerData = useComponentValue(playersTable, entityKey)
   const address = utils.hexValue(entityKey)
   return (
@@ -25,7 +22,6 @@ const PlayerListItem = ({ entityKey, playersTable }) => {
 }
 
 export const App = () => {
-  const [balance, setBalance] = useState<number>()
   const [messages, setMessages] = useState<
     { from: string; timestamp: number; message: string }[]
   >([])
@@ -36,11 +32,11 @@ export const App = () => {
   const mud = useMUD()
 
   const {
-    components: { PlayersTable, Systems },
+    components: { PlayersTable },
     systemCalls: { registerPlayer, unregisterPlayer },
     network,
   } = mud
-  const { httpOnlyClient, publicClient, walletClient } = network
+  const { walletClient } = network
 
   const addressEntities = useEntityQuery([Has(PlayersTable)])
   const addresses = addressEntities.map(utils.hexValue)
@@ -51,10 +47,36 @@ export const App = () => {
   const sendMsg = () => {
     setErrorMsg("")
     const text = inputRef.current.value
-    app.actions.sendOffchainMessage({ text }).then((result) => {
-      // TODO: prevent double sending the same message
-      inputRef.current.value = ""
-    })
+    if (!text || app === undefined) return
+
+    app.actions
+      .sendOffchainMessage({ text })
+      .then(({ result }) => {
+        // TODO
+        setMessages(
+          messages.concat([
+            {
+              from: "-",
+              timestamp: 0,
+              message: "-",
+            },
+          ])
+        )
+
+        // TODO: prevent double sending the same message
+        inputRef.current.value = ""
+      })
+      .catch((err: Error) => {
+        setErrorMsg(err.toString())
+        console.error(err)
+        // TODO
+        // if (err.cause?.data?.args) {
+        //   setErrorMsg(err.cause.data.args[0])
+        // } else {
+        //   setErrorMsg(err.toString())
+        //   console.error(err)
+        // }
+      })
   }
 
   const app = useCanvas({

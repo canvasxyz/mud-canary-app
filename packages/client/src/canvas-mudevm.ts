@@ -3,27 +3,45 @@ import { SIWESigner } from "@canvas-js/chain-ethereum"
 import { useMemo, useEffect, useState } from "react"
 import mudConfig from "contracts/mud.config"
 import IWorldAbi from "contracts/out/IWorld.sol/IWorld.abi.json"
-import type { Abi, AbiItem } from "viem"
+import type { Abi, AbiItem, Hex } from "viem"
 import type { AbiFunction } from "abitype"
 
+import { SetupResult } from "./mud/setup"
+
 // TODO: import type { ActionImplementation, ActionContext, ActionDB, JSValue } from "@canvas-js/core"
+// TODO: import type { PrimitiveType } from "@canvas-js/modeldb"
+// (should also export all the other modeldb types.)
+type PrimitiveType = "integer" | "float" | "string" | "bytes"
 interface JSArray extends Array<JSValue> {}
-interface JSObject { [key: string]: JSValue }
-type ModelAPI = any;
-type JSValue = null | boolean | number | string | Uint8Array | JSArray | JSObject
-type Awaitable<T> = T | Promise<T>;
-type ActionImplementation = (db: Record<string, any>, args: JSValue, context: ActionContext) => Awaitable<void | JSValue>;
+interface JSObject {
+  [key: string]: JSValue
+}
+type ModelAPI = any
+type JSValue =
+  | null
+  | boolean
+  | number
+  | string
+  | Uint8Array
+  | JSArray
+  | JSObject
+type Awaitable<T> = T | Promise<T>
+type ActionImplementation = (
+  db: Record<string, any>,
+  args: JSValue,
+  context: ActionContext
+) => Awaitable<void | JSValue>
 type ActionContext = {
-    id: string;
-    chain: string;
-    address: string;
-    blockhash: string | null;
-    timestamp: number;
-};
+  id: string
+  chain: string
+  address: string
+  blockhash: string | null
+  timestamp: number
+}
 
 // TODO
 interface IUseCanvas {
-  world: { mud: any; system: string }
+  world: { mud: SetupResult; system: string }
   offline: boolean
   signers: any
 }
@@ -57,7 +75,10 @@ export const useCanvas = (props: IUseCanvas) => {
       )
 
       // build models
-      const modelsSpec = Object.fromEntries(
+      const modelsSpec: Record<
+        string,
+        Record<string, PrimitiveType>
+      > = Object.fromEntries(
         models.map(([name, params]) => [
           name,
           {
@@ -73,7 +94,8 @@ export const useCanvas = (props: IUseCanvas) => {
                 "bytes",
               ])
             ),
-            // mutable: true,
+            // TODO: $indexes
+            // TODO: { mutable: true }
           },
         ])
       )
@@ -96,10 +118,12 @@ export const useCanvas = (props: IUseCanvas) => {
 
         const actions = Object.fromEntries(
           calls.map((abiParams: AbiFunction) => {
-            const actionHandler = async (db: Record<string, ModelAPI>, args: JSValue, context: ActionContext) => {
-              console.log("called", abiParams.name, abiParams)
-
-              const { content } = args as { content: string }
+            const actionHandler = async (
+              db: Record<string, ModelAPI>,
+              args: Record<string, JSValue>,
+              context: ActionContext
+            ) => {
+              const { text } = args as { text: string }
               const { id, chain, address, timestamp } = context
               // await db.posts.set(postId, { content, timestamp })
               // return id
@@ -123,30 +147,25 @@ export const useCanvas = (props: IUseCanvas) => {
                 (abi) => abi.name === "sendOffchainMessage"
               )
 
-              publicClient
-                .simulateContract({
-                  account: walletClient.account,
-                  from: walletClient.account.address as Hex,
-                  to: network.worldContract.address as Hex,
-                  abi: IWorldAbi,
-                  functionName: "sendOffchainMessage",
-                  args: [text],
-                  gasPrice: 0,
-                  gasLimit: 0,
-                })
-                .then((data) => {
-                  console.log(data.result)
-                  setMessages(messages.concat([data.result]))
-                  // app.actions.message({ text }).then((result) => /* sent result */)
-                })
-                .catch((err: Error) => {
-                  if (err.cause?.data?.args) {
-                    setErrorMsg(err.cause.data.args[0])
-                  } else {
-                    setErrorMsg(err.toString())
-                    console.error(err)
-                  }
-                })
+              const { publicClient, walletClient, worldContract } =
+                props.world.mud.network
+              return new Promise((resolve, reject) => {
+                publicClient
+                  .simulateContract({
+                    account: walletClient.account.address as Hex,
+                    address: worldContract.address as Hex,
+                    abi: IWorldAbi,
+                    functionName: "sendOffchainMessage",
+                    args: [text],
+                    gasPrice: 0n,
+                  })
+                  .then((data) => {
+                    resolve(data.result)
+                  })
+                  .catch((err: Error) => {
+                    reject(err)
+                  })
+              })
             }
 
             return [abiParams.name, actionHandler]
