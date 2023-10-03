@@ -1,58 +1,48 @@
-import { Canvas } from "@canvas-js/core"
+import { Canvas, ActionImplementation, JSValue } from "@canvas-js/core"
 import { SIWESigner } from "@canvas-js/chain-ethereum"
-import { useMemo, useEffect, useState } from "react"
+import { PrimitiveType, PropertyType } from "@canvas-js/modeldb"
+import { typeOf } from "@canvas-js/vm"
+
+import { useEffect, useState } from "react"
+import type {
+  Abi,
+  AbiItem,
+  Hex,
+  SimulateContractParameters,
+  WalletClient,
+  LocalAccount,
+  ContractFunctionResult,
+} from "viem"
+import type { AbiFunction, AbiParameter, AbiType, SolidityTuple } from "abitype"
+import { ethers } from "ethers"
+
 import mudConfig from "contracts/mud.config"
 import IWorldAbi from "contracts/out/IWorld.sol/IWorld.abi.json"
-import type { Abi, AbiItem, Hex } from "viem"
-import type { AbiFunction } from "abitype"
-
 import { SetupResult } from "./mud/setup"
+import { getNetworkConfig } from "./mud/getNetworkConfig"
 
-// TODO: import type { ActionImplementation, ActionContext, ActionDB, JSValue } from "@canvas-js/core"
-// TODO: import type { PrimitiveType } from "@canvas-js/modeldb"
-// (should also export all the other modeldb types.)
-type PrimitiveType = "integer" | "float" | "string" | "bytes"
-interface JSArray extends Array<JSValue> {}
-interface JSObject {
-  [key: string]: JSValue
+// to use https://abitype.dev/api/zod
+const abiTypeToModelType = (abitype: AbiType) => {
+  return "string" as PropertyType
 }
-type ModelAPI = any
-type JSValue =
-  | null
-  | boolean
-  | number
-  | string
-  | Uint8Array
-  | JSArray
-  | JSObject
-type Awaitable<T> = T | Promise<T>
-type ActionImplementation = (
-  db: Record<string, any>,
-  args: JSValue,
-  context: ActionContext
-) => Awaitable<void | JSValue>
-type ActionContext = {
-  id: string
-  chain: string
-  address: string
-  blockhash: string | null
-  timestamp: number
+const encode = (data: string | bigint, abitype: AbiType) => {
+  if (typeof data === "bigint") {
+    return data.toString()
+  } else {
+    return data
+  }
 }
 
-// TODO
-interface IUseCanvas {
-  world: { mud: SetupResult; system: string }
+export const useCanvas = (props: {
+  world: { mud: SetupResult; getNetworkConfig: typeof getNetworkConfig }
   offline: boolean
-  signers: any
-}
-
-export const useCanvas = (props: IUseCanvas) => {
+}) => {
   const [app, setApp] = useState<Canvas>()
-  // TODO: reset app when config changes?
+  // should we reset the app when config changes?
 
   useEffect(() => {
     const buildContract = async () => {
-      const { offline, signers } = props
+      const { offline, world } = props
 
       const models = Object.entries(mudConfig.tables).filter(
         ([tableName, params]) =>
@@ -75,23 +65,20 @@ export const useCanvas = (props: IUseCanvas) => {
       )
 
       // build models
-      const modelsSpec: Record<
-        string,
-        Record<string, PrimitiveType>
-      > = Object.fromEntries(
+      const modelsSpec = Object.fromEntries(
         models.map(([name, params]) => [
           name,
           {
-            ...Object.fromEntries(
-              Object.entries(params.keySchema).map(([field, type]) => [
-                field,
-                "string",
-              ])
-            ),
+            // ...Object.fromEntries(
+            //   Object.entries(params.keySchema).map(([field, type]) => [
+            //     field,
+            //     "string",
+            //   ])
+            // ),
             ...Object.fromEntries(
               Object.entries(params.valueSchema).map(([field, type]) => [
                 field,
-                "bytes",
+                abiTypeToModelType(type),
               ])
             ),
             // TODO: $indexes
@@ -102,65 +89,67 @@ export const useCanvas = (props: IUseCanvas) => {
 
       // build actions
       const actionsSpec = {}
-      for (const [name, params] of systems) {
+      for (const [name] of systems) {
+        // this should be parallelized
         const systemAbiRaw = await globs[
           `../../contracts/out/${name}.sol/${name}.abi.json`
         ]()
         const systemAbi = JSON.parse(systemAbiRaw)
 
+        // this is hacky, what other functions might be on systems? (look at system codegen)
         const calls = systemAbi.filter(
           (entry: AbiItem) =>
             entry.type === "function" &&
             !entry.name.startsWith("_") &&
             entry.stateMutability !== "pure"
-          // this is a bit hacky, what other functions might be on systems?
         )
 
         const actions = Object.fromEntries(
           calls.map((abiParams: AbiFunction) => {
-            const actionHandler = async (
-              db: Record<string, ModelAPI>,
-              args: Record<string, JSValue>,
-              context: ActionContext
+            const actionHandler: ActionImplementation = async (
+              db,
+              args = {},
+              context
             ) => {
-              const { text } = args as { text: string }
-              const { id, chain, address, timestamp } = context
-              // await db.posts.set(postId, { content, timestamp })
-              // return id
-
-              // TODO: convert to type signatures
-              // keySchema = { key: 'bytes32' }
-              // valueSchema = { from: 'address', timestamp: 'uint256', message: 'string' }
-
-              // const effects = await worldContract.simulate(call)
-              // // TODO: redo this once we see effects return
-              // for (const effect of effects) {
-              //   const to = match(
-              //     call.outputs[0].internalType ===
-              //       effect.internalType.replace(/Data$/, "")
-              //   )
-              //   const outputs = effect.decodedOutputs // TODO derive this from "result" once we have that
-              //   db[to].set({ ...outputs })
-              // }
-
-              const abi = IWorldAbi.find(
-                (abi) => abi.name === "sendOffchainMessage"
-              )
-
-              const { publicClient, walletClient, worldContract } =
-                props.world.mud.network
+              // args: Record<string, JSValue> or JSValue?
               return new Promise((resolve, reject) => {
+                const tableName = abiParams.outputs[0].internalType
+                  ?.replace(/^struct /, "")
+                  .replace(/Data$/, "")
+                if (tableName === undefined) return reject()
+                if (typeOf(args) !== "Object" || args === null) return reject()
+
+                const { publicClient, worldContract } = props.world.mud.network
                 publicClient
                   .simulateContract({
-                    account: walletClient.account.address as Hex,
+                    account: context.address as Hex,
                     address: worldContract.address as Hex,
                     abi: IWorldAbi,
-                    functionName: "sendOffchainMessage",
-                    args: [text],
+                    functionName: abiParams.name as any,
+                    // @ts-ignore
+                    args: abiParams.inputs.map((item) => args[item.name]),
                     gasPrice: 0n,
                   })
-                  .then((data) => {
-                    resolve(data.result)
+                  .then(({ result }) => {
+                    // The user-provided `timestamp` from canvas/p2psync doesn't
+                    // have any guarantees now. We should actions have monotonically
+                    // increasing timestamps, to make it safe for multi-user LWW.
+
+                    // Encode result which is an EVM ABI return type for modeldb.
+                    if (typeof result !== "object") return reject()
+
+                    const encodedResult = Object.fromEntries(
+                      Object.entries(result).map(([name, value]) => {
+                        // @ts-ignore
+                        const abitype = abiParams.outputs[0].components.find(
+                          (item: AbiFunction) => item.name === name
+                        ).type
+                        return [name, encode(value, abitype as AbiType)]
+                      })
+                    )
+
+                    db[tableName].set(tableName, encodedResult)
+                    resolve(encodedResult)
                   })
                   .catch((err: Error) => {
                     reject(err)
@@ -174,6 +163,12 @@ export const useCanvas = (props: IUseCanvas) => {
         Object.assign(actionsSpec, actions)
       }
 
+      // viem to ethers requires us to get the private key
+      // in the future we should just make a SIWESigner that accepts viem accounts
+      const { privateKey } = await getNetworkConfig()
+      const wallet = new ethers.Wallet(privateKey)
+
+      // create application
       const topic = "hello.world"
       const app = await Canvas.initialize({
         contract: {
@@ -182,17 +177,19 @@ export const useCanvas = (props: IUseCanvas) => {
           actions: actionsSpec,
         },
         offline,
-        signers: [new SIWESigner(signers[0])],
+        signers: [new SIWESigner({ signer: wallet as any })],
+        // TODO: client needs to be upgraded from ethers@5.7.2 to ethers@6.6.6 to match @canvas-js/core
         location: "sqldb",
       })
-
-      console.log(`refreshed app: ${topic}`)
       setApp(app)
     }
 
     buildContract()
-  }, [props.offline, props.world.system])
-  // TODO: check we aren't missing any props. we don't track `props.signers` right now.
+  }, [
+    props.offline,
+    props.world.mud.network.worldContract.address,
+    props.world.getNetworkConfig,
+  ])
 
   return app
 }

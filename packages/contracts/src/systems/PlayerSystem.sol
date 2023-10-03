@@ -2,7 +2,7 @@
 pragma solidity >=0.8.21;
 
 import { System } from "@latticexyz/world/src/System.sol";
-import { PlayersTable } from "../codegen/Tables.sol";
+import { PlayersTable } from "../codegen/tables/PlayersTable.sol";
 
 contract PlayerSystem is System {
   event Registered(address from);

@@ -2,8 +2,10 @@ import { useState, useRef } from "react"
 import { utils } from "ethers"
 import { useEntityQuery, useComponentValue } from "@latticexyz/react"
 import { Component, Entity, Has, Type } from "@latticexyz/recs"
+import { useLiveQuery } from "@canvas-js/modeldb"
 import { useMUD } from "./MUDContext"
 import { useCanvas } from "./canvas-mudevm"
+import { getNetworkConfig } from "./mud/getNetworkConfig"
 
 const PlayerListItem = ({
   entityKey,
@@ -22,9 +24,6 @@ const PlayerListItem = ({
 }
 
 export const App = () => {
-  const [messages, setMessages] = useState<
-    { from: string; timestamp: number; message: string }[]
-  >([])
   const [errorMsg, setErrorMsg] = useState<string>()
   const nameRef = useRef<any>()
   const inputRef = useRef<any>()
@@ -50,32 +49,14 @@ export const App = () => {
     if (!text || app === undefined) return
 
     app.actions
-      .sendOffchainMessage({ text })
-      .then(({ result }) => {
-        // TODO
-        setMessages(
-          messages.concat([
-            {
-              from: "-",
-              timestamp: 0,
-              message: "-",
-            },
-          ])
-        )
-
+      .sendOffchainMessage({ message: text })
+      .then(() => {
         // TODO: prevent double sending the same message
         inputRef.current.value = ""
       })
       .catch((err: Error) => {
         setErrorMsg(err.toString())
         console.error(err)
-        // TODO
-        // if (err.cause?.data?.args) {
-        //   setErrorMsg(err.cause.data.args[0])
-        // } else {
-        //   setErrorMsg(err.toString())
-        //   console.error(err)
-        // }
       })
   }
 
@@ -84,20 +65,27 @@ export const App = () => {
     const text = inputRef.current.value
     if (!text) return
 
-    network.worldContract.write.sendOffchainMessage([text]).then((result) => {
-      console.log(result)
-      inputRef.current.value = ''
-    }).catch((err) => {
-      setErrorMsg(err.toString())
-      console.error(err)
-    })
+    network.worldContract.write
+      .sendOffchainMessage([text])
+      .then((result) => {
+        console.log(result)
+        inputRef.current.value = ""
+      })
+      .catch((err) => {
+        setErrorMsg(err.toString())
+        console.error(err)
+      })
   }
 
   const app = useCanvas({
-    world: { mud, system: "OffchainSystem" },
+    world: { mud, getNetworkConfig },
     offline: true,
-    signers: [walletClient.account],
   })
+
+  const dbOrNull = app?.db ?? null
+  const messages = useLiveQuery(dbOrNull, "OffchainMessagesTable", {
+    limit: 50,
+  }) // TODO: where, orderBy
 
   return (
     <>
@@ -148,9 +136,9 @@ export const App = () => {
             margin: "20px 0",
           }}
         >
-          {messages.map((msg, idx) => (
+          {(messages || []).map((msg, idx) => (
             <div key={idx}>
-              [{msg.timestamp.toString()}] {msg.from}: {msg.message}
+              [{msg.timestamp?.toString()}] {msg.from}: {msg.message}
             </div>
           ))}
         </div>
@@ -167,7 +155,9 @@ export const App = () => {
             autoFocus
           />
           <button type="submit">Send</button>
-          <button type="button" onClick={sendMsgOnchain}>Send onchain</button>
+          <button type="button" onClick={sendMsgOnchain}>
+            Send onchain
+          </button>
           {errorMsg && (
             <div
               style={{

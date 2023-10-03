@@ -2,7 +2,8 @@
 pragma solidity >=0.8.21;
 
 import { System } from "@latticexyz/world/src/System.sol";
-import { PlayersTable, OffchainMessagesTable, OffchainMessagesTableData } from "../codegen/Tables.sol";
+import { PlayersTable } from "../codegen/tables/PlayersTable.sol";
+import { OffchainMessagesTable, OffchainMessagesTableData } from "../codegen/tables/OffchainMessagesTable.sol";
 
 contract MessagingSystem is System {
   event SentMessage(address indexed _from, string message);
