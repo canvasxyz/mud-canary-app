@@ -85,7 +85,8 @@ export const App = () => {
   const dbOrNull = app?.db ?? null
   const messages = useLiveQuery(dbOrNull, "OffchainMessagesTable", {
     limit: 50,
-  }) // TODO: where, orderBy
+    orderBy: { _key: "asc" },
+  })
 
   return (
     <>

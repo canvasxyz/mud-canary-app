@@ -4,12 +4,7 @@ import { PropertyType } from "@canvas-js/modeldb"
 import { typeOf } from "@canvas-js/vm"
 
 import { useEffect, useState } from "react"
-import {
-  type AbiItem,
-  type Hex,
-  keccak256,
-  encodeAbiParameters,
-} from "viem"
+import { type AbiItem, type Hex, keccak256, encodeAbiParameters } from "viem"
 import type { AbiFunction, AbiParameter, AbiType, SolidityTuple } from "abitype"
 import { ethers } from "ethers"
 
@@ -78,8 +73,8 @@ export const useCanvas = (props: {
                 abiTypeToModelType(type),
               ])
             ),
-            // TODO: $indexes
-            // TODO: { mutable: true }
+            _key: "string",
+            _timestamp: "integer",
           },
         ])
       )
@@ -95,7 +90,9 @@ export const useCanvas = (props: {
 
         const calls = systemAbi.filter(
           (entry: AbiItem) =>
-            entry.type === "function" && !entry.name.startsWith("_") && entry.name !== "supportsInterface"
+            entry.type === "function" &&
+            !entry.name.startsWith("_") &&
+            entry.name !== "supportsInterface"
         )
 
         const actions = Object.fromEntries(
@@ -129,18 +126,30 @@ export const useCanvas = (props: {
                     // One effect at a time for now, with key = keccak256(abi.encode(...))
 
                     // @ts-ignore
-                    const values = abiParams.outputs[0].components.map((component) => result[component.name])
+                    const values = abiParams.outputs[0].components.map(
+                      (component) => result[component.name]
+                    )
                     // @ts-ignore
-                    const key = keccak256(encodeAbiParameters(abiParams.outputs[0].components, values))
+                    const key = keccak256(
+                      encodeAbiParameters(
+                        abiParams.outputs[0].components,
+                        values
+                      )
+                    )
 
                     const encodedResult = Object.fromEntries(
-                      Object.entries(result).map(([name, value]) => {
-                        // @ts-ignore
-                        const abitype = abiParams.outputs[0].components.find(
-                          (item: AbiFunction) => item.name === name
-                        ).type
-                        return [name, encode(value, abitype as AbiType)]
-                      })
+                      Object.entries(result)
+                        .map(([name, value]) => {
+                          // @ts-ignore
+                          const abitype = abiParams.outputs[0].components.find(
+                            (item: AbiFunction) => item.name === name
+                          ).type
+                          return [name, encode(value, abitype as AbiType)]
+                        })
+                        .concat([
+                          ["_key", context.id],
+                          ["_timestamp", context.timestamp],
+                        ])
                     )
                     db[tableName].set(key, encodedResult)
                     resolve(encodedResult)
