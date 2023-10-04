@@ -1,17 +1,14 @@
-import { Canvas, ActionImplementation, JSValue } from "@canvas-js/core"
+import { Canvas, ActionImplementation } from "@canvas-js/core"
 import { SIWESigner } from "@canvas-js/chain-ethereum"
-import { PrimitiveType, PropertyType } from "@canvas-js/modeldb"
+import { PropertyType } from "@canvas-js/modeldb"
 import { typeOf } from "@canvas-js/vm"
 
 import { useEffect, useState } from "react"
-import type {
-  Abi,
-  AbiItem,
-  Hex,
-  SimulateContractParameters,
-  WalletClient,
-  LocalAccount,
-  ContractFunctionResult,
+import {
+  type AbiItem,
+  type Hex,
+  keccak256,
+  encodeAbiParameters,
 } from "viem"
 import type { AbiFunction, AbiParameter, AbiType, SolidityTuple } from "abitype"
 import { ethers } from "ethers"
@@ -96,12 +93,9 @@ export const useCanvas = (props: {
         ]()
         const systemAbi = JSON.parse(systemAbiRaw)
 
-        // this is hacky, what other functions might be on systems? (look at system codegen)
         const calls = systemAbi.filter(
           (entry: AbiItem) =>
-            entry.type === "function" &&
-            !entry.name.startsWith("_") &&
-            entry.stateMutability !== "pure"
+            entry.type === "function" && !entry.name.startsWith("_") && entry.name !== "supportsInterface"
         )
 
         const actions = Object.fromEntries(
@@ -131,12 +125,13 @@ export const useCanvas = (props: {
                     gasPrice: 0n,
                   })
                   .then(({ result }) => {
-                    // The user-provided `timestamp` from canvas/p2psync doesn't
-                    // have any guarantees now. We should actions have monotonically
-                    // increasing timestamps, to make it safe for multi-user LWW.
-
-                    // Encode result which is an EVM ABI return type for modeldb.
                     if (typeof result !== "object") return reject()
+                    // One effect at a time for now, with key = keccak256(abi.encode(...))
+
+                    // @ts-ignore
+                    const values = abiParams.outputs[0].components.map((component) => result[component.name])
+                    // @ts-ignore
+                    const key = keccak256(encodeAbiParameters(abiParams.outputs[0].components, values))
 
                     const encodedResult = Object.fromEntries(
                       Object.entries(result).map(([name, value]) => {
@@ -147,8 +142,7 @@ export const useCanvas = (props: {
                         return [name, encode(value, abitype as AbiType)]
                       })
                     )
-
-                    db[tableName].set(tableName, encodedResult)
+                    db[tableName].set(key, encodedResult)
                     resolve(encodedResult)
                   })
                   .catch((err: Error) => {
@@ -164,12 +158,12 @@ export const useCanvas = (props: {
       }
 
       // viem to ethers requires us to get the private key
-      // in the future we should just make a SIWESigner that accepts viem accounts
+      // in the future we should make a SIWESigner that accepts viem accounts
       const { privateKey } = await getNetworkConfig()
       const wallet = new ethers.Wallet(privateKey)
 
       // create application
-      const topic = "hello.world"
+      const topic = `world.contract-${world.mud.network.worldContract.address.toLowerCase()}`
       const app = await Canvas.initialize({
         contract: {
           topic,

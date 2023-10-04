@@ -115,10 +115,8 @@ export const App = () => {
               if (registered) {
                 await unregisterPlayer()
               } else if (nameRef?.current?.value?.trim()) {
-                console.log(1)
                 await registerPlayer(nameRef.current.value.trim())
               } else {
-                console.log(2)
                 await registerPlayer()
               }
             }}
