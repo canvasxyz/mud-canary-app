@@ -1,11 +1,17 @@
 import { useState, useRef } from "react"
-import { useLiveQuery } from "@canvas-js/modeldb"
+import { useCanvas, useLiveQuery } from "@canvas-js/cr-mudevm-sync"
 import { useMUD } from "./MUDContext"
-import { useCanvas } from "./canvas-mudevm"
 import { getNetworkConfig } from "./mud/getNetworkConfig"
 import mudConfig from "contracts/mud.config"
 
 import OnchainModules from "./OnchainModules"
+
+const systemAbis = import.meta.glob(
+  "./../../contracts/out/*System.sol/*.abi.json",
+  {
+    as: "raw",
+  }
+)
 
 export const App = () => {
   const [errorMsg, setErrorMsg] = useState<string>()
@@ -19,6 +25,7 @@ export const App = () => {
       worldContract: mud.network.worldContract,
       getPrivateKey: () => getNetworkConfig().then((n) => n.privateKey),
     },
+    systemAbis,
     offline: true,
   })
 

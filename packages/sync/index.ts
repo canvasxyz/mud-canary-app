@@ -23,8 +23,9 @@ import type {
   SolidityArrayWithTuple,
 } from "abitype"
 import { ethers } from "ethers"
-import { MUDCoreConfig } from "@latticexyz/config"
-import { getNetworkConfig } from "./mud/getNetworkConfig"
+import { type MUDCoreConfig } from "@latticexyz/config"
+
+export { useLiveQuery } from "@canvas-js/modeldb"
 
 // to use https://abitype.dev/api/zod
 const abiTypeToModelType = (abitype: string) => {
@@ -59,16 +60,16 @@ export function useCanvas<
     publicClient: PublicClient
     getPrivateKey: () => Promise<Hex>
   }
+  systemAbis: Record<string, () => Promise<string>>
   offline: boolean
 }) {
   const [app, setApp] = useState<Canvas>()
 
   useEffect(() => {
     const buildContract = async () => {
-      const { offline, world } = props
-      const { mudConfig } = world
+      const { offline, world, systemAbis } = props
 
-      const models = Object.entries(mudConfig.tables).filter(
+      const models = Object.entries(world.mudConfig.tables).filter(
         ([tableName, params]) =>
           params.offchainOnly === true /* && params.offchainSync === true */
       )
@@ -76,17 +77,12 @@ export function useCanvas<
         throw new Error("No offchain-synced tables defined")
       }
 
-      const systems = Object.entries(mudConfig.systems).filter(
+      const systems = Object.entries(world.mudConfig.systems).filter(
         ([systemName, params]) => true /* params.offchainSync === true */
       )
       if (models.length === 0) {
         throw new Error("No offchain-synced systems defined")
       }
-
-      const globs = import.meta.glob(
-        "./../../contracts/out/*System.sol/*.abi.json",
-        { as: "raw" }
-      )
 
       // build models
       const modelsSpec = Object.fromEntries(
@@ -107,12 +103,19 @@ export function useCanvas<
 
       // build actions
       const actionsSpec = {}
+      const globs = Object.fromEntries(
+        Object.entries(systemAbis).map(([key, value]) => {
+          const filename = key.match(/\w+\.abi\.json$/)![0]
+          return [filename, value]
+        })
+      )
+
       for (const [name] of systems) {
-        // this should be parallelized
-        const systemAbiRaw = await globs[
-          `../../contracts/out/${name}.sol/${name}.abi.json`
-        ]()
-        const systemAbi = JSON.parse(systemAbiRaw)
+        const systemAbiRaw = await globs[`${name}.abi.json`]()
+        const systemAbi =
+          typeof systemAbiRaw === "string"
+            ? JSON.parse(systemAbiRaw)
+            : systemAbiRaw
 
         const calls = systemAbi.filter(
           (entry: AbiItem) =>
@@ -192,7 +195,7 @@ export function useCanvas<
       }
 
       // TODO: viem to ethers requires us to get the private key, we should make SIWESigner accept viem
-      const { privateKey } = await getNetworkConfig()
+      const privateKey = await props.world.getPrivateKey()
       const wallet = new ethers.Wallet(privateKey)
 
       // create application

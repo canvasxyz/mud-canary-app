@@ -32,18 +32,9 @@ importers:
 
   packages/client:
     dependencies:
-      '@canvas-js/chain-ethereum':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
-      '@canvas-js/core':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
-      '@canvas-js/modeldb':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
-      '@canvas-js/vm':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
+      '@canvas-js/cr-mudevm-sync':
+        specifier: workspace:*
+        version: link:../sync
       '@ethersproject/providers':
         specifier: ^5.7.2
         version: 5.7.2
@@ -217,6 +208,43 @@ importers:
       typechain:
         specifier: ^8.1.1
         version: 8.3.1(typescript@5.1.6)
+
+  packages/sync:
+    dependencies:
+      '@canvas-js/chain-ethereum':
+        specifier: 0.6.0-alpha6
+        version: 0.6.0-alpha6(react@18.2.0)
+      '@canvas-js/core':
+        specifier: 0.6.0-alpha6
+        version: 0.6.0-alpha6(react@18.2.0)
+      '@canvas-js/modeldb':
+        specifier: 0.6.0-alpha6
+        version: 0.6.0-alpha6(react@18.2.0)
+      '@canvas-js/vm':
+        specifier: 0.6.0-alpha6
+        version: 0.6.0-alpha6(react@18.2.0)
+      '@latticexyz/config':
+        specifier: 2.0.0-next.9
+        version: 2.0.0-next.9(typescript@5.1.6)
+      abitype:
+        specifier: ^0.9.8
+        version: 0.9.8(typescript@5.1.6)(zod@3.22.2)
+      ethers:
+        specifier: ^5.7.2
+        version: 5.7.2
+      react:
+        specifier: '>=18.2.0'
+        version: 18.2.0
+      viem:
+        specifier: 1.6.0
+        version: 1.6.0(typescript@5.1.6)(zod@3.22.2)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.2.22
+        version: 18.2.22
+      vite:
+        specifier: ^4.2.1
+        version: 4.4.9
 
 packages:
 
