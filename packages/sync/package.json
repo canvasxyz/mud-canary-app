@@ -11,13 +11,15 @@
     "@canvas-js/core": "0.6.0-alpha6",
     "@canvas-js/modeldb": "0.6.0-alpha6",
     "@canvas-js/vm": "0.6.0-alpha6",
-    "@latticexyz/config": "2.0.0-next.9",
     "abitype": "^0.9.8",
     "ethers": "^5.7.2",
     "react": ">=18.2.0",
     "viem": "1.6.0"
   },
   "devDependencies": {
+    "@latticexyz/config": "2.0.0-next.9",
+    "@latticexyz/store": "2.0.0-next.9",
+    "@latticexyz/world": "2.0.0-next.9",
     "@types/react": "^18.2.22",
     "vite": "^4.2.1"
   }

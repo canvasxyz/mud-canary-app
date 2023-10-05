@@ -23,8 +23,9 @@ import { typeOf, JSObject } from "@canvas-js/vm"
 import { PropertyType } from "@canvas-js/modeldb"
 export { useLiveQuery } from "@canvas-js/modeldb"
 
-import { MUDCoreUserConfig } from "@latticexyz/config"
-import { ExpandMUDUserConfig } from "@latticexyz/store/ts/register/typeExtensions"
+import type { MUDCoreUserConfig } from "@latticexyz/config"
+import type { ExpandMUDUserConfig } from "@latticexyz/store/ts/register/typeExtensions"
+import type { WorldUserConfig } from "@latticexyz/world/ts/library/config/types"
 
 import { abiTypeToModelType, encode } from "./utils"
 
@@ -39,10 +40,9 @@ export function useCanvas<
   TPublicClient extends Partial<PublicClient>,
   TWalletClient extends Partial<WalletClient>,
   TAddress extends Address,
-  // TMUDCoreUserConfig extends MUDUserConfig<TMUDCoreUserConfig, never, never, never>
 >(props: {
   world: {
-    mudConfig: PartialDeep<ExpandMUDUserConfig<MUDCoreUserConfig>>
+    mudConfig: WorldUserConfig
     worldContract: TWorldContract
     publicClient: PublicClient
     getPrivateKey: () => Promise<Hex>
@@ -51,12 +51,13 @@ export function useCanvas<
   offline: boolean
 }) {
   const [app, setApp] = useState<Canvas>()
+  const mudConfig = props.world.mudConfig as ExpandMUDUserConfig<MUDCoreUserConfig>
 
   useEffect(() => {
     const buildContract = async () => {
       const { offline, world, systemAbis } = props
 
-      const models = Object.entries(world.mudConfig.tables).filter(
+      const models = Object.entries(mudConfig.tables).filter(
         ([tableName, params]) =>
           params.offchainOnly === true /* && params.offchainSync === true */
       )
@@ -64,7 +65,7 @@ export function useCanvas<
         throw new Error("No offchain-synced tables defined")
       }
 
-      const systems = Object.entries(world.mudConfig.systems).filter(
+      const systems = Object.entries(mudConfig.systems).filter(
         ([systemName, params]) => true /* params.offchainSync === true */
       )
       if (models.length === 0) {
