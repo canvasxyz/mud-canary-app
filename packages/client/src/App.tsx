@@ -1,5 +1,5 @@
 import { useState, useRef } from "react"
-import { useCanvas, useLiveQuery } from "@canvas-js/cr-mudevm-sync"
+import { useCanvas, useLiveQuery } from "@canvas-js/mudevm-sync"
 import { useMUD } from "./MUDContext"
 import { getNetworkConfig } from "./mud/getNetworkConfig"
 import mudConfig from "contracts/mud.config"

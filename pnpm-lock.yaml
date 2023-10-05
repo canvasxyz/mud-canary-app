@@ -32,9 +32,9 @@ importers:
 
   packages/client:
     dependencies:
-      '@canvas-js/cr-mudevm-sync':
-        specifier: workspace:*
-        version: link:../sync
+      '@canvas-js/mudevm-sync':
+        specifier: 0.6.0-alpha5
+        version: 0.6.0-alpha5(typescript@5.1.6)(zod@3.22.2)
       '@ethersproject/providers':
         specifier: ^5.7.2
         version: 5.7.2
@@ -208,49 +208,6 @@ importers:
       typechain:
         specifier: ^8.1.1
         version: 8.3.1(typescript@5.1.6)
-
-  packages/sync:
-    dependencies:
-      '@canvas-js/chain-ethereum':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
-      '@canvas-js/core':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
-      '@canvas-js/modeldb':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
-      '@canvas-js/vm':
-        specifier: 0.6.0-alpha6
-        version: 0.6.0-alpha6(react@18.2.0)
-      abitype:
-        specifier: ^0.9.8
-        version: 0.9.8(typescript@5.1.6)(zod@3.22.2)
-      ethers:
-        specifier: ^5.7.2
-        version: 5.7.2
-      react:
-        specifier: '>=18.2.0'
-        version: 18.2.0
-      viem:
-        specifier: 1.6.0
-        version: 1.6.0(typescript@5.1.6)(zod@3.22.2)
-    devDependencies:
-      '@latticexyz/config':
-        specifier: 2.0.0-next.10
-        version: 2.0.0-next.10(typescript@5.1.6)
-      '@latticexyz/store':
-        specifier: 2.0.0-next.10
-        version: 2.0.0-next.10(typescript@5.1.6)
-      '@latticexyz/world':
-        specifier: 2.0.0-next.10
-        version: 2.0.0-next.10(typescript@5.1.6)
-      '@types/react':
-        specifier: ^18.2.22
-        version: 18.2.22
-      vite:
-        specifier: ^4.2.1
-        version: 4.4.9
 
 packages:
 
@@ -677,6 +634,26 @@ packages:
       react: 18.2.0
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /@canvas-js/mudevm-sync@0.6.0-alpha5(typescript@5.1.6)(zod@3.22.2):
+    resolution: {integrity: sha512-rkpwOqf/JoNL7zLL8P+Qp6gd4MrYWWUc6xCbJkLVH3Isp20wgdtMsaeuJghn2DL+dZu/fQMXIx4kCRhA1QLqow==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@canvas-js/chain-ethereum': 0.6.0-alpha6(react@18.2.0)
+      '@canvas-js/core': 0.6.0-alpha6(react@18.2.0)
+      '@canvas-js/modeldb': 0.6.0-alpha6(react@18.2.0)
+      '@canvas-js/vm': 0.6.0-alpha6(react@18.2.0)
+      abitype: 0.9.8(typescript@5.1.6)(zod@3.22.2)
+      ethers: 5.7.2
+      react: 18.2.0
+      viem: 1.6.0(typescript@5.1.6)(zod@3.22.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - typescript
+      - utf-8-validate
+      - zod
     dev: false
 
   /@canvas-js/okra-idb@0.2.1(idb@7.1.1):
@@ -1741,6 +1718,7 @@ packages:
       - typescript
       - utf-8-validate
       - zod
+    dev: false
 
   /@latticexyz/common@2.0.0-next.9(typescript@5.1.6)(zod@3.22.2):
     resolution: {integrity: sha512-jvcebyEJ6ViSEdQjphLwPsp7o6/B7KWNdwCrepFHOt0DpDIrgLoDRL6TBQFh7hK4niLuIPcLUmfAPo05onubKg==}
@@ -1779,6 +1757,7 @@ packages:
       - supports-color
       - typescript
       - utf-8-validate
+    dev: false
 
   /@latticexyz/config@2.0.0-next.9(typescript@5.1.6):
     resolution: {integrity: sha512-m0pDAbIWngjXXvcWiFJ5j1IpCDrIEQS6f+XRmJncisOqRgoAxZr4wcd9WBZofv5ZmuFp6BjgmsfRDtblVtTfWg==}
@@ -1948,6 +1927,7 @@ packages:
       - typescript
       - utf-8-validate
       - zod
+    dev: false
 
   /@latticexyz/schema-type@2.0.0-next.9(typescript@5.1.6)(zod@3.22.2):
     resolution: {integrity: sha512-MZUrZllVaHXYJriYsVZtd2Uo3G359FVTw6uKibFJm6YnPgGLxvSCvsicZU6Nh4wnyqvdxHtmxj5DZNQR7Ucokw==}
@@ -2040,6 +2020,7 @@ packages:
       - supports-color
       - typescript
       - utf-8-validate
+    dev: false
 
   /@latticexyz/store@2.0.0-next.9(typescript@5.1.6):
     resolution: {integrity: sha512-Ikew4wOeEWlZySUfdTWQ5jcfwuOc35ONZY80OnpTPl+m9O4/oXQS7Rrit0f79Rl7zSvQTPqQUsvE1WSzCit7Qg==}
@@ -2125,6 +2106,7 @@ packages:
       - supports-color
       - typescript
       - utf-8-validate
+    dev: false
 
   /@latticexyz/world@2.0.0-next.9(typescript@5.1.6):
     resolution: {integrity: sha512-2Zi6o5Wu4U5gICL4xBqMtIlt+ieblaZ8sGQepcoqd9XWLsJc3FChL9sngFxdrmvrd3oDwuVg/HFro77mGeurdw==}
