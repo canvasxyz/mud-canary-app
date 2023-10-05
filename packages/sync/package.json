@@ -17,9 +17,9 @@
     "viem": "1.6.0"
   },
   "devDependencies": {
-    "@latticexyz/config": "2.0.0-next.9",
-    "@latticexyz/store": "2.0.0-next.9",
-    "@latticexyz/world": "2.0.0-next.9",
+    "@latticexyz/config": "2.0.0-next.10",
+    "@latticexyz/store": "2.0.0-next.10",
+    "@latticexyz/world": "2.0.0-next.10",
     "@types/react": "^18.2.22",
     "vite": "^4.2.1"
   }

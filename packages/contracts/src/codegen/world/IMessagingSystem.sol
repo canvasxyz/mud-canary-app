@@ -5,6 +5,10 @@ pragma solidity >=0.8.21;
 
 import { OffchainMessagesTableData } from "./../tables/OffchainMessagesTable.sol";
 
+/**
+ * @title IMessagingSystem
+ * @dev This interface is automatically generated from the corresponding system contract. Do not edit manually.
+ */
 interface IMessagingSystem {
   function sendOffchainMessage(string memory message) external returns (OffchainMessagesTableData memory);
 }

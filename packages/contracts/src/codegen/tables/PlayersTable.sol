@@ -30,12 +30,18 @@ FieldLayout constant _fieldLayout = FieldLayout.wrap(
 );
 
 library PlayersTable {
-  /** Get the table values' field layout */
+  /**
+   * @notice Get the table values' field layout.
+   * @return _fieldLayout The field layout for the table.
+   */
   function getFieldLayout() internal pure returns (FieldLayout) {
     return _fieldLayout;
   }
 
-  /** Get the table's key schema */
+  /**
+   * @notice Get the table's key schema.
+   * @return _keySchema The key schema for the table.
+   */
   function getKeySchema() internal pure returns (Schema) {
     SchemaType[] memory _keySchema = new SchemaType[](1);
     _keySchema[0] = SchemaType.ADDRESS;
@@ -43,7 +49,10 @@ library PlayersTable {
     return SchemaLib.encode(_keySchema);
   }
 
-  /** Get the table's value schema */
+  /**
+   * @notice Get the table's value schema.
+   * @return _valueSchema The value schema for the table.
+   */
   function getValueSchema() internal pure returns (Schema) {
     SchemaType[] memory _valueSchema = new SchemaType[](1);
     _valueSchema[0] = SchemaType.STRING;
@@ -51,34 +60,48 @@ library PlayersTable {
     return SchemaLib.encode(_valueSchema);
   }
 
-  /** Get the table's key names */
+  /**
+   * @notice Get the table's key field names.
+   * @return keyNames An array of strings with the names of key fields.
+   */
   function getKeyNames() internal pure returns (string[] memory keyNames) {
     keyNames = new string[](1);
     keyNames[0] = "player";
   }
 
-  /** Get the table's field names */
+  /**
+   * @notice Get the table's value field names.
+   * @return fieldNames An array of strings with the names of value fields.
+   */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
     fieldNames = new string[](1);
     fieldNames[0] = "name";
   }
 
-  /** Register the table with its config */
+  /**
+   * @notice Register the table with its config.
+   */
   function register() internal {
     StoreSwitch.registerTable(_tableId, _fieldLayout, getKeySchema(), getValueSchema(), getKeyNames(), getFieldNames());
   }
 
-  /** Register the table with its config */
+  /**
+   * @notice Register the table with its config.
+   */
   function _register() internal {
     StoreCore.registerTable(_tableId, _fieldLayout, getKeySchema(), getValueSchema(), getKeyNames(), getFieldNames());
   }
 
-  /** Register the table with its config (using the specified store) */
+  /**
+   * @notice Register the table with its config (using the specified store).
+   */
   function register(IStore _store) internal {
     _store.registerTable(_tableId, _fieldLayout, getKeySchema(), getValueSchema(), getKeyNames(), getFieldNames());
   }
 
-  /** Get name */
+  /**
+   * @notice Get name.
+   */
   function getName(address player) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -87,7 +110,9 @@ library PlayersTable {
     return (string(_blob));
   }
 
-  /** Get name */
+  /**
+   * @notice Get name.
+   */
   function _getName(address player) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -96,7 +121,9 @@ library PlayersTable {
     return (string(_blob));
   }
 
-  /** Get name (using the specified store) */
+  /**
+   * @notice Get name (using the specified store).
+   */
   function getName(IStore _store, address player) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -105,7 +132,9 @@ library PlayersTable {
     return (string(_blob));
   }
 
-  /** Get name */
+  /**
+   * @notice Get name.
+   */
   function get(address player) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -114,7 +143,9 @@ library PlayersTable {
     return (string(_blob));
   }
 
-  /** Get name */
+  /**
+   * @notice Get name.
+   */
   function _get(address player) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -123,7 +154,9 @@ library PlayersTable {
     return (string(_blob));
   }
 
-  /** Get name (using the specified store) */
+  /**
+   * @notice Get name (using the specified store).
+   */
   function get(IStore _store, address player) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -132,7 +165,9 @@ library PlayersTable {
     return (string(_blob));
   }
 
-  /** Set name */
+  /**
+   * @notice Set name.
+   */
   function setName(address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -140,7 +175,9 @@ library PlayersTable {
     StoreSwitch.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
 
-  /** Set name */
+  /**
+   * @notice Set name.
+   */
   function _setName(address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -148,7 +185,9 @@ library PlayersTable {
     StoreCore.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
 
-  /** Set name (using the specified store) */
+  /**
+   * @notice Set name (using the specified store).
+   */
   function setName(IStore _store, address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -156,7 +195,9 @@ library PlayersTable {
     _store.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
 
-  /** Set name */
+  /**
+   * @notice Set name.
+   */
   function set(address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -164,7 +205,9 @@ library PlayersTable {
     StoreSwitch.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
 
-  /** Set name */
+  /**
+   * @notice Set name.
+   */
   function _set(address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -172,7 +215,9 @@ library PlayersTable {
     StoreCore.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
 
-  /** Set name (using the specified store) */
+  /**
+   * @notice Set name (using the specified store).
+   */
   function set(IStore _store, address player, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -180,7 +225,9 @@ library PlayersTable {
     _store.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
 
-  /** Get the length of name */
+  /**
+   * @notice Get the length of name.
+   */
   function lengthName(address player) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -191,7 +238,9 @@ library PlayersTable {
     }
   }
 
-  /** Get the length of name */
+  /**
+   * @notice Get the length of name.
+   */
   function _lengthName(address player) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -202,7 +251,9 @@ library PlayersTable {
     }
   }
 
-  /** Get the length of name (using the specified store) */
+  /**
+   * @notice Get the length of name (using the specified store).
+   */
   function lengthName(IStore _store, address player) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -213,7 +264,9 @@ library PlayersTable {
     }
   }
 
-  /** Get the length of name */
+  /**
+   * @notice Get the length of name.
+   */
   function length(address player) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -224,7 +277,9 @@ library PlayersTable {
     }
   }
 
-  /** Get the length of name */
+  /**
+   * @notice Get the length of name.
+   */
   function _length(address player) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -235,7 +290,9 @@ library PlayersTable {
     }
   }
 
-  /** Get the length of name (using the specified store) */
+  /**
+   * @notice Get the length of name (using the specified store).
+   */
   function length(IStore _store, address player) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -247,8 +304,8 @@ library PlayersTable {
   }
 
   /**
-   * Get an item of name
-   * (unchecked, returns invalid data if index overflows)
+   * @notice Get an item of name.
+   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
   function getItemName(address player, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -261,8 +318,8 @@ library PlayersTable {
   }
 
   /**
-   * Get an item of name
-   * (unchecked, returns invalid data if index overflows)
+   * @notice Get an item of name.
+   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
   function _getItemName(address player, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -275,8 +332,8 @@ library PlayersTable {
   }
 
   /**
-   * Get an item of name (using the specified store)
-   * (unchecked, returns invalid data if index overflows)
+   * @notice Get an item of name (using the specified store).
+   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
   function getItemName(IStore _store, address player, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -289,8 +346,8 @@ library PlayersTable {
   }
 
   /**
-   * Get an item of name
-   * (unchecked, returns invalid data if index overflows)
+   * @notice Get an item of name.
+   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
   function getItem(address player, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -303,8 +360,8 @@ library PlayersTable {
   }
 
   /**
-   * Get an item of name
-   * (unchecked, returns invalid data if index overflows)
+   * @notice Get an item of name.
+   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
   function _getItem(address player, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -317,8 +374,8 @@ library PlayersTable {
   }
 
   /**
-   * Get an item of name (using the specified store)
-   * (unchecked, returns invalid data if index overflows)
+   * @notice Get an item of name (using the specified store).
+   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
   function getItem(IStore _store, address player, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -330,7 +387,9 @@ library PlayersTable {
     }
   }
 
-  /** Push a slice to name */
+  /**
+   * @notice Push a slice to name.
+   */
   function pushName(address player, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -338,7 +397,9 @@ library PlayersTable {
     StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
 
-  /** Push a slice to name */
+  /**
+   * @notice Push a slice to name.
+   */
   function _pushName(address player, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -346,7 +407,9 @@ library PlayersTable {
     StoreCore.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
 
-  /** Push a slice to name (using the specified store) */
+  /**
+   * @notice Push a slice to name (using the specified store).
+   */
   function pushName(IStore _store, address player, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -354,7 +417,9 @@ library PlayersTable {
     _store.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
 
-  /** Push a slice to name */
+  /**
+   * @notice Push a slice to name.
+   */
   function push(address player, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -362,7 +427,9 @@ library PlayersTable {
     StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
 
-  /** Push a slice to name */
+  /**
+   * @notice Push a slice to name.
+   */
   function _push(address player, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -370,7 +437,9 @@ library PlayersTable {
     StoreCore.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
 
-  /** Push a slice to name (using the specified store) */
+  /**
+   * @notice Push a slice to name (using the specified store).
+   */
   function push(IStore _store, address player, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -378,7 +447,9 @@ library PlayersTable {
     _store.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
 
-  /** Pop a slice from name */
+  /**
+   * @notice Pop a slice from name.
+   */
   function popName(address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -386,7 +457,9 @@ library PlayersTable {
     StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 0, 1);
   }
 
-  /** Pop a slice from name */
+  /**
+   * @notice Pop a slice from name.
+   */
   function _popName(address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -394,7 +467,9 @@ library PlayersTable {
     StoreCore.popFromDynamicField(_tableId, _keyTuple, 0, 1);
   }
 
-  /** Pop a slice from name (using the specified store) */
+  /**
+   * @notice Pop a slice from name (using the specified store).
+   */
   function popName(IStore _store, address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -402,7 +477,9 @@ library PlayersTable {
     _store.popFromDynamicField(_tableId, _keyTuple, 0, 1);
   }
 
-  /** Pop a slice from name */
+  /**
+   * @notice Pop a slice from name.
+   */
   function pop(address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -410,7 +487,9 @@ library PlayersTable {
     StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 0, 1);
   }
 
-  /** Pop a slice from name */
+  /**
+   * @notice Pop a slice from name.
+   */
   function _pop(address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -418,7 +497,9 @@ library PlayersTable {
     StoreCore.popFromDynamicField(_tableId, _keyTuple, 0, 1);
   }
 
-  /** Pop a slice from name (using the specified store) */
+  /**
+   * @notice Pop a slice from name (using the specified store).
+   */
   function pop(IStore _store, address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -427,8 +508,7 @@ library PlayersTable {
   }
 
   /**
-   * Update a slice of name at `_index`
-   * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
+   * @notice Update a slice of name at `_index`.
    */
   function updateName(address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -441,8 +521,7 @@ library PlayersTable {
   }
 
   /**
-   * Update a slice of name at `_index`
-   * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
+   * @notice Update a slice of name at `_index`.
    */
   function _updateName(address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -455,8 +534,7 @@ library PlayersTable {
   }
 
   /**
-   * Update a slice of name (using the specified store) at `_index`
-   * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
+   * @notice Update a slice of name (using the specified store) at `_index`.
    */
   function updateName(IStore _store, address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -469,8 +547,7 @@ library PlayersTable {
   }
 
   /**
-   * Update a slice of name at `_index`
-   * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
+   * @notice Update a slice of name at `_index`.
    */
   function update(address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -483,8 +560,7 @@ library PlayersTable {
   }
 
   /**
-   * Update a slice of name at `_index`
-   * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
+   * @notice Update a slice of name at `_index`.
    */
   function _update(address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -497,8 +573,7 @@ library PlayersTable {
   }
 
   /**
-   * Update a slice of name (using the specified store) at `_index`
-   * (checked only to prevent modifying other tables; can corrupt own data if index overflows)
+   * @notice Update a slice of name (using the specified store) at `_index`.
    */
   function update(IStore _store, address player, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -510,7 +585,9 @@ library PlayersTable {
     }
   }
 
-  /** Delete all data for given keys */
+  /**
+   * @notice Delete all data for given keys.
+   */
   function deleteRecord(address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -518,7 +595,9 @@ library PlayersTable {
     StoreSwitch.deleteRecord(_tableId, _keyTuple);
   }
 
-  /** Delete all data for given keys */
+  /**
+   * @notice Delete all data for given keys.
+   */
   function _deleteRecord(address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -526,7 +605,9 @@ library PlayersTable {
     StoreCore.deleteRecord(_tableId, _keyTuple, _fieldLayout);
   }
 
-  /** Delete all data for given keys (using the specified store) */
+  /**
+   * @notice Delete all data for given keys (using the specified store).
+   */
   function deleteRecord(IStore _store, address player) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));
@@ -534,7 +615,10 @@ library PlayersTable {
     _store.deleteRecord(_tableId, _keyTuple);
   }
 
-  /** Tightly pack dynamic data using this table's schema */
+  /**
+   * @notice Tightly pack dynamic data lengths using this table's schema.
+   * @return _encodedLengths The lengths of the dynamic fields (packed into a single bytes32 value).
+   */
   function encodeLengths(string memory name) internal pure returns (PackedCounter _encodedLengths) {
     // Lengths are effectively checked during copy by 2**40 bytes exceeding gas limits
     unchecked {
@@ -542,12 +626,20 @@ library PlayersTable {
     }
   }
 
-  /** Tightly pack dynamic data using this table's schema */
+  /**
+   * @notice Tightly pack dynamic (variable length) data using this table's schema.
+   * @return The dynamic data, encoded into a sequence of bytes.
+   */
   function encodeDynamic(string memory name) internal pure returns (bytes memory) {
     return abi.encodePacked(bytes((name)));
   }
 
-  /** Tightly pack full data using this table's field layout */
+  /**
+   * @notice Encode all of a record's fields.
+   * @return The static (fixed length) data, encoded into a sequence of bytes.
+   * @return The lengths of the dynamic fields (packed into a single bytes32 value).
+   * @return The dyanmic (variable length) data, encoded into a sequence of bytes.
+   */
   function encode(string memory name) internal pure returns (bytes memory, PackedCounter, bytes memory) {
     bytes memory _staticData;
     PackedCounter _encodedLengths = encodeLengths(name);
@@ -556,7 +648,9 @@ library PlayersTable {
     return (_staticData, _encodedLengths, _dynamicData);
   }
 
-  /** Encode keys as a bytes32 array using this table's field layout */
+  /**
+   * @notice Encode keys as a bytes32 array using this table's field layout.
+   */
   function encodeKeyTuple(address player) internal pure returns (bytes32[] memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(player)));

@@ -24,8 +24,8 @@ export const App = () => {
       publicClient: mud.network.publicClient,
       worldContract: mud.network.worldContract,
       getPrivateKey: () => getNetworkConfig().then((n) => n.privateKey),
+      systemAbis,
     },
-    systemAbis,
     offline: true,
   })
 

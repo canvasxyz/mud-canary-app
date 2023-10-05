@@ -3,5 +3,6 @@
 Usage:
 
 ```
-npm run dev
+pnpm i
+pnpm run dev
 ```

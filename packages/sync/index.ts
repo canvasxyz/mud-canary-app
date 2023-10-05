@@ -39,23 +39,24 @@ export function useCanvas<
   TAbi extends Abi,
   TPublicClient extends Partial<PublicClient>,
   TWalletClient extends Partial<WalletClient>,
-  TAddress extends Address,
+  TAddress extends Address
 >(props: {
   world: {
     mudConfig: WorldUserConfig
     worldContract: TWorldContract
     publicClient: PublicClient
     getPrivateKey: () => Promise<Hex>
+    systemAbis: Record<string, () => Promise<string>>
   }
-  systemAbis: Record<string, () => Promise<string>>
   offline: boolean
 }) {
   const [app, setApp] = useState<Canvas>()
-  const mudConfig = props.world.mudConfig as ExpandMUDUserConfig<MUDCoreUserConfig>
+  const mudConfig = props.world
+    .mudConfig as ExpandMUDUserConfig<MUDCoreUserConfig>
 
   useEffect(() => {
     const buildContract = async () => {
-      const { offline, world, systemAbis } = props
+      const { offline, world } = props
 
       const models = Object.entries(mudConfig.tables).filter(
         ([tableName, params]) =>
@@ -92,7 +93,7 @@ export function useCanvas<
       // build actions
       const actionsSpec = {}
       const globs = Object.fromEntries(
-        Object.entries(systemAbis).map(([key, value]) => {
+        Object.entries(world.systemAbis).map(([key, value]) => {
           const filename = key.match(/\w+\.abi\.json$/)![0]
           return [filename, value]
         })
@@ -133,7 +134,9 @@ export function useCanvas<
                     address: worldContract.address as Hex,
                     abi: worldContract.abi,
                     functionName: abiParams.name as any,
-                    args: abiParams.inputs.map((item) => (args as JSObject)[item.name as string]),
+                    args: abiParams.inputs.map(
+                      (item) => (args as JSObject)[item.name as string]
+                    ),
                     gasPrice: 0n,
                   })
                   .then((data) => {
