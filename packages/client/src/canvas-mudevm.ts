@@ -15,7 +15,13 @@ import {
   WalletClient,
   Address,
 } from "viem"
-import type { AbiFunction, AbiType } from "abitype"
+import type {
+  AbiFunction,
+  AbiParameter,
+  AbiType,
+  SolidityTuple,
+  SolidityArrayWithTuple,
+} from "abitype"
 import { ethers } from "ethers"
 import { MUDCoreConfig } from "@latticexyz/config"
 import { getNetworkConfig } from "./mud/getNetworkConfig"
@@ -24,7 +30,10 @@ import { getNetworkConfig } from "./mud/getNetworkConfig"
 const abiTypeToModelType = (abitype: string) => {
   return "string" as PropertyType
 }
-const encode = (data: string | bigint, abitype: AbiType) => {
+const encode: (data: string | bigint, abitype: AbiType) => string | number = (
+  data,
+  abitype
+) => {
   if (typeof data === "bigint") {
     return data.toString()
   } else {
@@ -40,8 +49,8 @@ export function useCanvas<
     TAddress
   >,
   TAbi extends Abi,
-  TPublicClient extends PublicClient,
-  TWalletClient extends WalletClient,
+  TPublicClient extends Partial<PublicClient>,
+  TWalletClient extends Partial<WalletClient>,
   TAddress extends Address
 >(props: {
   world: {
@@ -137,40 +146,38 @@ export function useCanvas<
                     args: abiParams.inputs.map((item) => args[item.name]),
                     gasPrice: 0n,
                   })
-                  .then(({ result }) => {
-                    if (Array.isArray(result)) return reject()
-                    // Gather and execute effects, one effect at a time for now, with key = keccak256(abi.encode(...))
+                  .then((data) => {
+                    const result = data.result as { [s: string]: unknown }
 
-                    const components: AbiFunction[] =
-                      // @ts-ignore
-                      abiParams.outputs[0].components
-                    // @ts-ignore
-                    const values = components.map((c) => result[c.name])
+                    // Gather and execute effects, one effect at a time for now, with key = keccak256(abi.encode(...))
+                    const outputs = abiParams.outputs[0] as AbiParameter & {
+                      type: SolidityTuple | SolidityArrayWithTuple
+                      components: readonly AbiParameter[]
+                    }
+                    const values = outputs.components.map(
+                      (c) => result[c.name!]
+                    )
                     const key = keccak256(
-                      encodeAbiParameters(components, values)
+                      encodeAbiParameters(outputs.components, values)
                     )
 
-                    const encodedResult = Object.fromEntries(
+                    const modelValue = Object.fromEntries(
                       Object.entries(result)
-                        .map(([name, value]) => {
-                          const abitype = components.find(
-                            (item) => item.name === name
-                          )?.type
-                          return [
-                            name,
-                            encode(
-                              value as string | bigint,
-                              abitype as AbiType
-                            ),
-                          ]
-                        })
+                        .map(([name, value]) => [
+                          name,
+                          encode(
+                            value as string | bigint,
+                            outputs.components.find((c) => c.name === name)
+                              ?.type as AbiType
+                          ),
+                        ])
                         .concat([
                           ["_key", context.id],
                           ["_timestamp", context.timestamp],
                         ])
                     )
-                    db[tableName].set(key, encodedResult)
-                    resolve(encodedResult)
+                    db[tableName].set(key, modelValue)
+                    resolve(modelValue)
                   })
                   .catch((err: Error) => {
                     reject(err)
