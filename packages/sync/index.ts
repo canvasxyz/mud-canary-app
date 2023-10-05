@@ -25,7 +25,7 @@ export { useLiveQuery } from "@canvas-js/modeldb"
 
 import type { MUDCoreUserConfig } from "@latticexyz/config"
 import type { ExpandMUDUserConfig } from "@latticexyz/store/ts/register/typeExtensions"
-import type { WorldUserConfig } from "@latticexyz/world/ts/library/config/types"
+import type { WorldConfig, WorldUserConfig } from "@latticexyz/world/ts/library/config/types"
 
 import { abiTypeToModelType, encode } from "./utils"
 
@@ -52,7 +52,7 @@ export function useCanvas<
 }) {
   const [app, setApp] = useState<Canvas>()
   const mudConfig = props.world
-    .mudConfig as ExpandMUDUserConfig<MUDCoreUserConfig>
+    .mudConfig as ExpandMUDUserConfig<MUDCoreUserConfig> & WorldConfig
 
   useEffect(() => {
     const buildContract = async () => {
