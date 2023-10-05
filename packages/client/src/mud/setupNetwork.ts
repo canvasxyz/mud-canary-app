@@ -33,30 +33,7 @@ export async function setupNetwork() {
     transport: transportObserver(fallback([webSocket(), http()])),
     pollingInterval: 1000,
   } as ClientConfig
-  const publicClient = createPublicClient(clientOptions).extend((client) => ({
-    async traceCall(args: CallParameters) {
-      return client.request({
-        method: "debug_traceCall",
-        params: [formatTransactionRequest(args), "latest", { code: "0x0" }],
-      })
-    },
-  }))
-
-  const httpOnlyClientOptions = {
-    chain: networkConfig.chain,
-    transport: transportObserver(fallback([http()])),
-    pollingInterval: 1000,
-  } as ClientConfig
-  const httpOnlyClient = createPublicClient(httpOnlyClientOptions).extend(
-    (client) => ({
-      async createAccessList(args: CallParameters) {
-        return client.request({
-          method: "eth_createAccessList",
-          params: [args, "latest"],
-        })
-      },
-    })
-  )
+  const publicClient = createPublicClient(clientOptions)
 
   const burnerAccount = createBurnerAccount(networkConfig.privateKey as Hex)
   const burnerWalletClient = createWalletClient({
@@ -82,20 +59,28 @@ export async function setupNetwork() {
       startBlock: BigInt(networkConfig.initialBlockNumber),
     })
 
-  try {
-    console.log("creating faucet client")
-    const faucet = createFaucetClient({ url: "http://localhost:3002/trpc" })
+  // Request drip from faucet
+  if (networkConfig.faucetServiceUrl) {
+    const address = burnerAccount.address;
+    console.info("[Dev Faucet]: Player address -> ", address);
 
-    const drip = async () => {
-      console.log("dripping")
-      const tx = await faucet.drip.mutate({ address: burnerAccount.address })
-      console.log("got drip", tx)
-    }
+    const faucet = createFaucetService(networkConfig.faucetServiceUrl);
 
-    drip()
-    setInterval(drip, 20_000)
-  } catch (e) {
-    console.error(e)
+    const requestDrip = async () => {
+      const balance = await publicClient.getBalance({ address });
+      console.info(`[Dev Faucet]: Player balance -> ${balance}`);
+      const lowBalance = balance < parseEther("1");
+      if (lowBalance) {
+        console.info("[Dev Faucet]: Balance is low, dripping funds to player");
+        // Double drip
+        await faucet.dripDev({ address });
+        await faucet.dripDev({ address });
+      }
+    };
+
+    requestDrip();
+    // Request a drip every 20 seconds
+    setInterval(requestDrip, 20000);
   }
 
   return {
@@ -106,7 +91,6 @@ export async function setupNetwork() {
       { address: burnerWalletClient.account.address }
     ),
     publicClient,
-    httpOnlyClient,
     walletClient: burnerWalletClient,
     latestBlock$,
     storedBlockLogs$,
