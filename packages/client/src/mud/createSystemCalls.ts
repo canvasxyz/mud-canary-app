@@ -10,13 +10,22 @@ export function createSystemCalls(
 ) {
   const registerPlayer = async (name?: Hex) => {
     const tx = name
-      ? await network.worldContract.write.registerPlayer([name])
-      : await network.worldContract.write.registerPlayer()
+      ? await network.worldContract.write.registerPlayer([name], {
+          maxFeePerGas: 0n,
+          maxPriorityFeePerGas: 0n,
+        })
+      : await network.worldContract.write.registerPlayer({
+          maxFeePerGas: 0n,
+          maxPriorityFeePerGas: 0n,
+        })
     const result = await network.waitForTransaction(tx)
     return result
   }
   const unregisterPlayer = async () => {
-    const tx = await network.worldContract.write.unregisterPlayer()
+    const tx = await network.worldContract.write.unregisterPlayer({
+      maxFeePerGas: 0n,
+      maxPriorityFeePerGas: 0n,
+    })
     const result = await network.waitForTransaction(tx)
     return result
   }
