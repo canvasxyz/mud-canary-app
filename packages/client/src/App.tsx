@@ -3,6 +3,7 @@ import { useLiveQuery } from "@canvas-js/modeldb"
 import { useMUD } from "./MUDContext"
 import { useCanvas } from "./canvas-mudevm"
 import { getNetworkConfig } from "./mud/getNetworkConfig"
+import mudConfig from "contracts/mud.config"
 
 import OnchainModules from "./OnchainModules"
 
@@ -12,7 +13,11 @@ export const App = () => {
   const mud = useMUD()
 
   const app = useCanvas({
-    world: { mud, getNetworkConfig },
+    world: {
+      mudConfig,
+      worldContract: mud.network.worldContract,
+      getPrivateKey: () => getNetworkConfig().then((n) => n.privateKey),
+    },
     offline: true,
   })
 
@@ -23,7 +28,7 @@ export const App = () => {
 
     app.actions
       .sendOffchainMessage({ message: text })
-      .then(() => inputRef.current.value = "")
+      .then(() => (inputRef.current.value = ""))
       .catch((err: Error) => {
         setErrorMsg(err.toString())
         console.error(err)
