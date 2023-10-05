@@ -1,14 +1,7 @@
-import { Canvas, ActionImplementation } from "@canvas-js/core"
-import { SIWESigner } from "@canvas-js/chain-ethereum"
-import { PropertyType } from "@canvas-js/modeldb"
-import { typeOf } from "@canvas-js/vm"
-
 import { useEffect, useState } from "react"
 import {
   type AbiItem,
   type Hex,
-  keccak256,
-  encodeAbiParameters,
   GetContractReturnType,
   Abi,
   PublicClient,
@@ -23,24 +16,17 @@ import type {
   SolidityArrayWithTuple,
 } from "abitype"
 import { ethers } from "ethers"
-import { type MUDCoreConfig } from "@latticexyz/config"
 
+import { Canvas, ActionImplementation, JSValue } from "@canvas-js/core"
+import { SIWESigner } from "@canvas-js/chain-ethereum"
+import { typeOf, JSObject } from "@canvas-js/vm"
+import { PropertyType } from "@canvas-js/modeldb"
 export { useLiveQuery } from "@canvas-js/modeldb"
 
-// to use https://abitype.dev/api/zod
-const abiTypeToModelType = (abitype: string) => {
-  return "string" as PropertyType
-}
-const encode: (data: string | bigint, abitype: AbiType) => string | number = (
-  data,
-  abitype
-) => {
-  if (typeof data === "bigint") {
-    return data.toString()
-  } else {
-    return data
-  }
-}
+import { MUDCoreUserConfig } from "@latticexyz/config"
+import { ExpandMUDUserConfig } from "@latticexyz/store/ts/register/typeExtensions"
+
+import { abiTypeToModelType, encode } from "./utils"
 
 export function useCanvas<
   TWorldContract extends GetContractReturnType<
@@ -52,10 +38,11 @@ export function useCanvas<
   TAbi extends Abi,
   TPublicClient extends Partial<PublicClient>,
   TWalletClient extends Partial<WalletClient>,
-  TAddress extends Address
+  TAddress extends Address,
+  // TMUDCoreUserConfig extends MUDUserConfig<TMUDCoreUserConfig, never, never, never>
 >(props: {
   world: {
-    mudConfig: MUDCoreConfig
+    mudConfig: PartialDeep<ExpandMUDUserConfig<MUDCoreUserConfig>>
     worldContract: TWorldContract
     publicClient: PublicClient
     getPrivateKey: () => Promise<Hex>
@@ -128,7 +115,7 @@ export function useCanvas<
           calls.map((abiParams: AbiFunction) => {
             const actionHandler: ActionImplementation = async (
               db,
-              args = {},
+              args = {} as { [s: string]: JSValue },
               context
             ) => {
               return new Promise((resolve, reject) => {
@@ -136,7 +123,7 @@ export function useCanvas<
                   ?.replace(/^struct /, "")
                   .replace(/Data$/, "")
                 if (tableName === undefined) return reject()
-                if (typeOf(args) !== "Object" || args === null) return reject()
+                if (typeOf(args) !== "Object" || args === null) return reject() // TODO: JSObject typeguard
 
                 const { publicClient, worldContract } = props.world
                 publicClient
@@ -145,14 +132,13 @@ export function useCanvas<
                     address: worldContract.address as Hex,
                     abi: worldContract.abi,
                     functionName: abiParams.name as any,
-                    // @ts-ignore
-                    args: abiParams.inputs.map((item) => args[item.name]),
+                    args: abiParams.inputs.map((item) => (args as JSObject)[item.name as string]),
                     gasPrice: 0n,
                   })
                   .then((data) => {
                     const result = data.result as { [s: string]: unknown }
 
-                    // Gather and execute effects, one effect at a time for now, with key = keccak256(abi.encode(...))
+                    // Gather and execute effects, one effect at a time for now
                     const outputs = abiParams.outputs[0] as AbiParameter & {
                       type: SolidityTuple | SolidityArrayWithTuple
                       components: readonly AbiParameter[]
@@ -160,9 +146,8 @@ export function useCanvas<
                     const values = outputs.components.map(
                       (c) => result[c.name!]
                     )
-                    const key = keccak256(
-                      encodeAbiParameters(outputs.components, values)
-                    )
+                    const key = context.id
+                    // TODO: use key = keccak256(encodeAbiParameters(outputs.components, values))
 
                     const modelValue = Object.fromEntries(
                       Object.entries(result)
