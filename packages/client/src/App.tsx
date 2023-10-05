@@ -15,6 +15,7 @@ export const App = () => {
   const app = useCanvas({
     world: {
       mudConfig,
+      publicClient: mud.network.publicClient,
       worldContract: mud.network.worldContract,
       getPrivateKey: () => getNetworkConfig().then((n) => n.privateKey),
     },
@@ -36,8 +37,8 @@ export const App = () => {
   }
 
   const messages = useLiveQuery(app?.db, "OffchainMessagesTable", {
-    limit: 50,
-    orderBy: { _key: "asc" },
+    limit: 20,
+    orderBy: { _key: "desc" },
   })
 
   return (

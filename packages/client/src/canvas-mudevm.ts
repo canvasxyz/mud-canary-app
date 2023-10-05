@@ -138,11 +138,11 @@ export function useCanvas<
                     gasPrice: 0n,
                   })
                   .then(({ result }) => {
-                    if (!Array.isArray(result)) return reject()
+                    if (Array.isArray(result)) return reject()
                     // Gather and execute effects, one effect at a time for now, with key = keccak256(abi.encode(...))
 
-                    // @ts-ignore
                     const components: AbiFunction[] =
+                      // @ts-ignore
                       abiParams.outputs[0].components
                     // @ts-ignore
                     const values = components.map((c) => result[c.name])
@@ -166,7 +166,7 @@ export function useCanvas<
                         })
                         .concat([
                           ["_key", context.id],
-                          ["_timestamp", context.timestamp.toString()],
+                          ["_timestamp", context.timestamp],
                         ])
                     )
                     db[tableName].set(key, encodedResult)
@@ -205,12 +205,7 @@ export function useCanvas<
     }
 
     buildContract()
-  }, [
-    props.world.mudConfig,
-    props.world.worldContract.address,
-    props.world.getPrivateKey,
-    props.offline,
-  ])
+  }, [props.world.worldContract.address, props.offline])
 
   return app
 }
