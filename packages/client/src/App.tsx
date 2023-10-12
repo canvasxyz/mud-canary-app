@@ -35,7 +35,7 @@ export const App = () => {
     if (!text || app === undefined) return
 
     app.actions
-      .sendOffchainMessage({ message: text })
+      .sendOffchainMessage({ message: text, timestamp: Date.now() })
       .then(() => (inputRef.current.value = ""))
       .catch((err: Error) => {
         setErrorMsg(err.toString())
@@ -45,7 +45,7 @@ export const App = () => {
 
   const messages = useLiveQuery(app?.db, "OffchainMessagesTable", {
     limit: 20,
-    orderBy: { _key: "desc" },
+    orderBy: { timestamp: "desc" },
   })
 
   return (
